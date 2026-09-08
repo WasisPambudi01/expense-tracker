@@ -29,8 +29,10 @@ const getDefaultBudgets = (expenseList) => Object.fromEntries(expenseList.map((c
 export default function ExpenseTracker() {
   const [session, setSession] = useState(null);
   const [checkingSession, setCheckingSession] = useState(true);
+  const [authMode, setAuthMode] = useState("signin"); // signin | signup
   const [authEmail, setAuthEmail] = useState("");
-  const [authStatus, setAuthStatus] = useState("idle"); // idle | sending | sent | error
+  const [authPassword, setAuthPassword] = useState("");
+  const [authStatus, setAuthStatus] = useState("idle"); // idle | sending | signedup | error
   const [authError, setAuthError] = useState("");
 
   const [loaded, setLoaded] = useState(false);
@@ -63,7 +65,10 @@ export default function ExpenseTracker() {
   const [filterCat, setFilterCat] = useState("Semua");
   const [groupBy, setGroupBy] = useState("tanggal");
 
-  // ---- Autentikasi (magic link email, lewat Supabase Auth) ----
+  // ---- Autentikasi (email + password, lewat Supabase Auth) ----
+  // Supabase menyimpan sesi login di localStorage browser secara default,
+  // jadi setelah sekali login, sesi akan bertahan (tidak perlu login ulang)
+  // sampai kamu klik Keluar atau data browser dihapus.
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);
@@ -75,20 +80,27 @@ export default function ExpenseTracker() {
     return () => listener.subscription.unsubscribe();
   }, []);
 
-  async function sendMagicLink(e) {
+  async function handleAuthSubmit(e) {
     e.preventDefault();
-    if (!authEmail.trim()) return;
+    if (!authEmail.trim() || !authPassword) return;
     setAuthStatus("sending");
     setAuthError("");
-    const { error } = await supabase.auth.signInWithOtp({
-      email: authEmail.trim(),
-      options: { emailRedirectTo: window.location.origin },
-    });
-    if (error) {
-      setAuthStatus("error");
-      setAuthError(error.message);
+    if (authMode === "signup") {
+      const { error } = await supabase.auth.signUp({ email: authEmail.trim(), password: authPassword });
+      if (error) {
+        setAuthStatus("error");
+        setAuthError(error.message);
+      } else {
+        setAuthStatus("signedup");
+      }
     } else {
-      setAuthStatus("sent");
+      const { error } = await supabase.auth.signInWithPassword({ email: authEmail.trim(), password: authPassword });
+      if (error) {
+        setAuthStatus("error");
+        setAuthError(error.message);
+      } else {
+        setAuthStatus("idle");
+      }
     }
   }
 
@@ -352,6 +364,8 @@ export default function ExpenseTracker() {
     .login-msg { font-size: 13px; margin-top: 14px; }
     .login-msg.ok { color: #2E6F6B; }
     .login-msg.err { color: #B4483C; }
+    .login-switch { font-size: 12.5px; color: #6B675E; margin-top: 16px; }
+    .login-switch button { background: none; border: none; color: #1E3932; font-weight: 600; cursor: pointer; font-size: 12.5px; padding: 0; text-decoration: underline; }
   `;
 
   if (checkingSession) {
@@ -364,23 +378,49 @@ export default function ExpenseTracker() {
         <style>{loginStyles}</style>
         <div className="login-card">
           <h1>Buku Kas</h1>
-          <p>Masuk dengan email untuk menyimpan dan menyinkronkan catatan keuanganmu di semua perangkat.</p>
-          <form onSubmit={sendMagicLink}>
+          <p>
+            {authMode === "signup"
+              ? "Buat akun untuk mulai menyimpan dan menyinkronkan catatan keuanganmu di semua perangkat."
+              : "Masuk untuk melanjutkan catatan keuanganmu. Sesi login akan tersimpan otomatis di browser ini."}
+          </p>
+          <form onSubmit={handleAuthSubmit}>
             <input
               type="email"
               required
               placeholder="emailmu@contoh.com"
               value={authEmail}
               onChange={(e) => setAuthEmail(e.target.value)}
+              autoComplete="email"
+            />
+            <input
+              type="password"
+              required
+              minLength={6}
+              placeholder="Password (minimal 6 karakter)"
+              value={authPassword}
+              onChange={(e) => setAuthPassword(e.target.value)}
+              autoComplete={authMode === "signup" ? "new-password" : "current-password"}
             />
             <button type="submit" disabled={authStatus === "sending"}>
-              <Mail size={15} /> {authStatus === "sending" ? "Mengirim…" : "Kirim Link Masuk"}
+              <Mail size={15} />
+              {authStatus === "sending" ? "Memproses…" : authMode === "signup" ? "Daftar & Masuk" : "Masuk"}
             </button>
           </form>
-          {authStatus === "sent" && (
-            <div className="login-msg ok">Link masuk sudah dikirim ke {authEmail}. Buka email itu dan klik link-nya untuk masuk.</div>
+
+          {authStatus === "signedup" && (
+            <div className="login-msg ok">
+              Akun berhasil dibuat. Kalau konfirmasi email masih aktif di project Supabase-mu, cek inbox dulu; kalau tidak, kamu langsung masuk otomatis.
+            </div>
           )}
-          {authStatus === "error" && <div className="login-msg err">Gagal mengirim: {authError}</div>}
+          {authStatus === "error" && <div className="login-msg err">Gagal: {authError}</div>}
+
+          <div className="login-switch">
+            {authMode === "signin" ? (
+              <>Belum punya akun? <button type="button" onClick={() => { setAuthMode("signup"); setAuthStatus("idle"); setAuthError(""); }}>Daftar</button></>
+            ) : (
+              <>Sudah punya akun? <button type="button" onClick={() => { setAuthMode("signin"); setAuthStatus("idle"); setAuthError(""); }}>Masuk</button></>
+            )}
+          </div>
         </div>
       </div>
     );

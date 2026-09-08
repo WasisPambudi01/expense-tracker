@@ -29,10 +29,9 @@ const getDefaultBudgets = (expenseList) => Object.fromEntries(expenseList.map((c
 export default function ExpenseTracker() {
   const [session, setSession] = useState(null);
   const [checkingSession, setCheckingSession] = useState(true);
-  const [authMode, setAuthMode] = useState("signin"); // signin | signup
   const [authEmail, setAuthEmail] = useState("");
   const [authPassword, setAuthPassword] = useState("");
-  const [authStatus, setAuthStatus] = useState("idle"); // idle | sending | signedup | error
+  const [authStatus, setAuthStatus] = useState("idle"); // idle | sending | error
   const [authError, setAuthError] = useState("");
 
   const [loaded, setLoaded] = useState(false);
@@ -85,22 +84,12 @@ export default function ExpenseTracker() {
     if (!authEmail.trim() || !authPassword) return;
     setAuthStatus("sending");
     setAuthError("");
-    if (authMode === "signup") {
-      const { error } = await supabase.auth.signUp({ email: authEmail.trim(), password: authPassword });
-      if (error) {
-        setAuthStatus("error");
-        setAuthError(error.message);
-      } else {
-        setAuthStatus("signedup");
-      }
+    const { error } = await supabase.auth.signInWithPassword({ email: authEmail.trim(), password: authPassword });
+    if (error) {
+      setAuthStatus("error");
+      setAuthError(error.message);
     } else {
-      const { error } = await supabase.auth.signInWithPassword({ email: authEmail.trim(), password: authPassword });
-      if (error) {
-        setAuthStatus("error");
-        setAuthError(error.message);
-      } else {
-        setAuthStatus("idle");
-      }
+      setAuthStatus("idle");
     }
   }
 
@@ -364,8 +353,6 @@ export default function ExpenseTracker() {
     .login-msg { font-size: 13px; margin-top: 14px; }
     .login-msg.ok { color: #2E6F6B; }
     .login-msg.err { color: #B4483C; }
-    .login-switch { font-size: 12.5px; color: #6B675E; margin-top: 16px; }
-    .login-switch button { background: none; border: none; color: #1E3932; font-weight: 600; cursor: pointer; font-size: 12.5px; padding: 0; text-decoration: underline; }
   `;
 
   if (checkingSession) {
@@ -378,11 +365,7 @@ export default function ExpenseTracker() {
         <style>{loginStyles}</style>
         <div className="login-card">
           <h1>Buku Kas</h1>
-          <p>
-            {authMode === "signup"
-              ? "Buat akun untuk mulai menyimpan dan menyinkronkan catatan keuanganmu di semua perangkat."
-              : "Masuk untuk melanjutkan catatan keuanganmu. Sesi login akan tersimpan otomatis di browser ini."}
-          </p>
+          <p>Masuk untuk melanjutkan catatan keuanganmu. Sesi login akan tersimpan otomatis di browser ini.</p>
           <form onSubmit={handleAuthSubmit}>
             <input
               type="email"
@@ -396,31 +379,18 @@ export default function ExpenseTracker() {
               type="password"
               required
               minLength={6}
-              placeholder="Password (minimal 6 karakter)"
+              placeholder="Password"
               value={authPassword}
               onChange={(e) => setAuthPassword(e.target.value)}
-              autoComplete={authMode === "signup" ? "new-password" : "current-password"}
+              autoComplete="current-password"
             />
             <button type="submit" disabled={authStatus === "sending"}>
               <Mail size={15} />
-              {authStatus === "sending" ? "Memproses…" : authMode === "signup" ? "Daftar & Masuk" : "Masuk"}
+              {authStatus === "sending" ? "Memproses…" : "Masuk"}
             </button>
           </form>
 
-          {authStatus === "signedup" && (
-            <div className="login-msg ok">
-              Akun berhasil dibuat. Kalau konfirmasi email masih aktif di project Supabase-mu, cek inbox dulu; kalau tidak, kamu langsung masuk otomatis.
-            </div>
-          )}
           {authStatus === "error" && <div className="login-msg err">Gagal: {authError}</div>}
-
-          <div className="login-switch">
-            {authMode === "signin" ? (
-              <>Belum punya akun? <button type="button" onClick={() => { setAuthMode("signup"); setAuthStatus("idle"); setAuthError(""); }}>Daftar</button></>
-            ) : (
-              <>Sudah punya akun? <button type="button" onClick={() => { setAuthMode("signin"); setAuthStatus("idle"); setAuthError(""); }}>Masuk</button></>
-            )}
-          </div>
         </div>
       </div>
     );
@@ -462,8 +432,8 @@ export default function ExpenseTracker() {
 
         .title-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
         h1 { font-family: 'Lora', serif; font-weight: 600; font-size: clamp(22px, 4vw, 30px); margin: 0; color: var(--primary); }
-        .settings-btn { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 10px 14px; display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px; color: var(--ink); min-height: 40px; }
-        .settings-btn:hover { border-color: var(--primary); }
+        .icon-action-btn { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--ink); flex-shrink: 0; }
+        .icon-action-btn:hover { border-color: var(--primary); color: var(--primary); }
 
         .hero { background: var(--primary); border-radius: 16px; padding: clamp(18px, 3vw, 26px); display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 20px; margin-bottom: 20px; }
         .hero-item .lbl { color: #C9D6CC; font-size: 12px; margin-bottom: 6px; }
@@ -564,7 +534,6 @@ export default function ExpenseTracker() {
 
         @media (max-width: 480px) {
           .title-row { align-items: flex-start; }
-          .settings-btn { width: 100%; justify-content: center; }
         }
       `}</style>
 
@@ -578,8 +547,12 @@ export default function ExpenseTracker() {
         <div className="title-row">
           <h1>Buku Kas</h1>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-            <button className="settings-btn" onClick={() => openSettings("anggaran")}><Settings2 size={15} /> Pengaturan</button>
-            <button className="settings-btn" onClick={signOut}><LogOut size={15} /> Keluar</button>
+            <button className="icon-action-btn" onClick={() => openSettings("anggaran")} aria-label="Pengaturan" title="Pengaturan">
+              <Settings2 size={17} />
+            </button>
+            <button className="icon-action-btn" onClick={signOut} aria-label="Keluar" title="Keluar">
+              <LogOut size={17} />
+            </button>
           </div>
         </div>
 

@@ -1,6 +1,6 @@
 # Buku Kas — Pencatatan Pengeluaran & Anggaran Pribadi
 
-Aplikasi web pencatatan pengeluaran, pemasukan, dan anggaran bulanan. Data disimpan di **Supabase** (database gratis di cloud) dan diamankan dengan login email, sehingga catatanmu **otomatis sinkron** antara laptop dan HP.
+Aplikasi web pencatatan pengeluaran, pemasukan, dan anggaran bulanan. Data disimpan di **Supabase** (database gratis di cloud) dan diamankan dengan login email + password, sehingga catatanmu **otomatis sinkron** antara laptop dan HP. Pendaftaran publik dimatikan — hanya kamu yang bisa punya akun, dan akunnya dibuat manual lewat dashboard Supabase (bukan lewat form pendaftaran di web).
 
 ## Langkah 1 — Buat project Supabase (gratis)
 
@@ -11,13 +11,10 @@ Aplikasi web pencatatan pengeluaran, pemasukan, dan anggaran bulanan. Data disim
    - **Project URL** → contoh `https://xxxxx.supabase.co`
    - **anon public key** → deretan huruf/angka panjang
 
-## Langkah 2 — Atur email login (opsional tapi disarankan)
+## Langkah 2 — Buat akunmu & tutup pendaftaran publik
 
-Secara default Supabase mengirim link login lewat email bawaan mereka (cukup untuk pemakaian pribadi, tapi ada batas jumlah email/jam). Ini bisa langsung dipakai tanpa konfigurasi tambahan — lewati langkah ini kalau tidak masalah.
-
-Di **Authentication → URL Configuration**, isi:
-- **Site URL**: URL situs kamu nanti setelah di-deploy (mis. `https://buku-kas.vercel.app`). Untuk sekarang bisa isi sementara, nanti diperbarui setelah deploy.
-- **Redirect URLs**: tambahkan `http://localhost:5173` (untuk uji coba lokal) dan URL Vercel kamu nanti.
+1. Di Supabase, buka **Authentication → Sign In / Providers** (atau **Settings** di bagian Authentication), cari opsi **"Allow new users to sign up"**, lalu **matikan**. Ini mencegah siapa pun membuat akun baru lewat aplikasi.
+2. Buka **Authentication → Users → Add user → Create new user**. Isi dengan email dan password kamu sendiri, centang **"Auto Confirm User"** kalau tersedia, lalu simpan. Inilah satu-satunya akun yang bisa dipakai untuk masuk ke aplikasi.
 
 ## Langkah 3 — Coba jalan di komputer sendiri (opsional)
 
@@ -32,7 +29,7 @@ Buka file `.env`, isi `VITE_SUPABASE_URL` dan `VITE_SUPABASE_ANON_KEY` dengan ni
 npm run dev
 ```
 
-Buka `http://localhost:5173`, masukkan email, cek inbox untuk link login.
+Buka `http://localhost:5173`, masuk dengan email + password akun yang sudah kamu buat di Langkah 2.
 
 ## Deploy ke Internet (gratis)
 
@@ -49,8 +46,7 @@ Cara termudah: **Vercel**, lewat GitHub.
    - `VITE_SUPABASE_URL` → isi dengan Project URL dari Supabase
    - `VITE_SUPABASE_ANON_KEY` → isi dengan anon public key dari Supabase
 4. Biarkan pengaturan build default (Vercel otomatis mengenali project Vite). Klik **Deploy**.
-5. Setelah selesai (~1 menit), kamu dapat URL seperti `buku-kas.vercel.app`.
-6. **Terakhir**, balik ke Supabase → **Authentication → URL Configuration**, perbarui **Site URL** dan **Redirect URLs** dengan URL Vercel-mu yang sebenarnya (mis. `https://buku-kas.vercel.app`). Tanpa langkah ini, link login lewat email akan mengarah ke alamat yang salah.
+5. Setelah selesai (~1 menit), kamu dapat URL seperti `buku-kas.vercel.app`. Buka, lalu masuk dengan akun yang sudah kamu buat di Langkah 2.
 
 Setiap kali kamu (atau saya) mengubah kode dan mengunggah ulang ke GitHub, Vercel otomatis mem-build ulang dan memperbarui situsnya.
 
@@ -61,7 +57,8 @@ Setiap kali kamu (atau saya) mengubah kode dan mengunggah ulang ke GitHub, Verce
 
 ## Penting soal data & keamanan
 - Data tersimpan di database Supabase, dibatasi lewat **Row Level Security** — hanya kamu (setelah login) yang bisa membaca/mengubah datamu sendiri.
-- Login memakai **magic link** (link sekali pakai lewat email), tanpa password untuk diingat.
-- Karena disimpan di cloud, data otomatis sama antara laptop dan HP — cukup login pakai email yang sama di kedua perangkat.
+- Login memakai **email + password**; sesi login tersimpan otomatis di browser, jadi tidak perlu login ulang setiap buka aplikasi.
+- **Pendaftaran publik dimatikan** — tidak ada tombol/form daftar di aplikasi maupun lewat API. Akun hanya bisa ditambahkan manual lewat dashboard Supabase (Authentication → Users).
+- Karena disimpan di cloud, data otomatis sama antara laptop dan HP — cukup login pakai akun yang sama di kedua perangkat.
 - Paket gratis Supabase cukup untuk pemakaian pribadi (database 500MB, sampai 50.000 pengguna aktif/bulan) — jauh lebih dari cukup untuk satu orang.
 - `anon public key` aman untuk ditaruh di kode frontend (memang dirancang untuk itu) — keamanan sebenarnya ada di aturan Row Level Security yang sudah dibuat lewat `supabase-setup.sql`.

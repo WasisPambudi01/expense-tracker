@@ -1,4 +1,4 @@
-# Buku Kas — Pencatatan Pengeluaran & Anggaran Pribadi
+# Catatan Keuangan — Pencatatan Pengeluaran & Anggaran Pribadi
 
 Aplikasi web pencatatan pengeluaran, pemasukan, dan anggaran bulanan. Data disimpan di **Supabase** (database gratis di cloud) dan diamankan dengan login email + password, sehingga catatanmu **otomatis sinkron** antara laptop dan HP. Pendaftaran publik dimatikan — hanya kamu yang bisa punya akun, dan akunnya dibuat manual lewat dashboard Supabase (bukan lewat form pendaftaran di web).
 

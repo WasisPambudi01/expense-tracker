@@ -1,6 +1,6 @@
 {
-  "name": "Buku Kas",
-  "short_name": "Buku Kas",
+  "name": "Catatan Keuangan",
+  "short_name": "Catatan",
   "description": "Pencatatan pengeluaran, pemasukan, dan anggaran pribadi",
   "start_url": ".",
   "display": "standalone",

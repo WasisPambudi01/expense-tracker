@@ -545,7 +545,7 @@ export default function ExpenseTracker() {
         </div>
 
         <div className="title-row">
-          <h1>Buku Kas</h1>
+          <h1>Catatan Keuangan</h1>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             <button className="icon-action-btn" onClick={() => openSettings("anggaran")} aria-label="Pengaturan" title="Pengaturan">
               <Settings2 size={17} />

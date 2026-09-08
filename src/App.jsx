@@ -364,7 +364,7 @@ export default function ExpenseTracker() {
       <div className="login-wrap">
         <style>{loginStyles}</style>
         <div className="login-card">
-          <h1>Buku Kas</h1>
+          <h1>Catatan Keuangan</h1>
           <p>Masuk untuk melanjutkan catatan keuanganmu. Sesi login akan tersimpan otomatis di browser ini.</p>
           <form onSubmit={handleAuthSubmit}>
             <input

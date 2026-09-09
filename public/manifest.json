@@ -1,6 +1,6 @@
 {
-  "name": "Catatan Keuangan",
-  "short_name": "Catatan",
+  "name": "Cash Flow",
+  "short_name": "CashFlow",
   "description": "Pencatatan pengeluaran, pemasukan, dan anggaran pribadi",
   "start_url": ".",
   "display": "standalone",

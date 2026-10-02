@@ -35,6 +35,8 @@ export default function ExpenseTracker() {
   const [authError, setAuthError] = useState("");
 
   const [loaded, setLoaded] = useState(false);
+  const [loadError, setLoadError] = useState("");
+  const [retryCount, setRetryCount] = useState(0);
   const [transactions, setTransactions] = useState([]);
   const [budgets, setBudgets] = useState(getDefaultBudgets(DEFAULT_EXPENSE));
   const [categories, setCategories] = useState({ pemasukan: DEFAULT_INCOME, pengeluaran: DEFAULT_EXPENSE });
@@ -102,8 +104,13 @@ export default function ExpenseTracker() {
   }
 
   // ---- Muat data dari Supabase saat sudah login ----
+  // PENTING: `loaded` hanya boleh jadi true kalau proses ambil data BENAR-BENAR berhasil
+  // (baik itu dapat data, maupun memang belum ada data sama sekali untuk user baru).
+  // Kalau gagal (mis. koneksi putus), JANGAN set loaded=true, karena itu akan memicu
+  // efek auto-save di bawah dan menimpa data asli di server dengan state kosong/default.
   useEffect(() => {
     if (!session) return;
+    setLoadError("");
     (async () => {
       try {
         const { data, error } = await supabase
@@ -127,12 +134,14 @@ export default function ExpenseTracker() {
             setFSub(loadedCats.pengeluaran[0].subs[0]);
           }
         }
+        setLoaded(true); // hanya sampai sini kalau sukses (dengan atau tanpa data)
       } catch (e) {
         console.error("Gagal memuat data dari Supabase", e);
+        setLoadError(e.message || "Gagal memuat data dari server.");
+        // loaded TIDAK diset true di sini — mencegah auto-save menimpa data dengan kondisi kosong
       }
-      setLoaded(true);
     })();
-  }, [session]);
+  }, [session, retryCount]);
 
   // ---- Simpan data ke Supabase setiap ada perubahan ----
   useEffect(() => {
@@ -391,6 +400,29 @@ export default function ExpenseTracker() {
           </form>
 
           {authStatus === "error" && <div className="login-msg err">Gagal: {authError}</div>}
+        </div>
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div className="login-wrap">
+        <style>{loginStyles}</style>
+        <div className="login-card">
+          <h1>Gagal memuat data</h1>
+          <p>
+            Terjadi masalah saat mengambil data dari server: <strong>{loadError}</strong>
+            <br />
+            Data lamamu aman (tidak ditimpa) — coba lagi setelah memastikan koneksi internet stabil.
+          </p>
+          <button
+            type="button"
+            onClick={() => setRetryCount((n) => n + 1)}
+            style={{ width: "100%", background: "#1E3932", color: "#fff", border: "none", borderRadius: 8, padding: 12, fontSize: 14, fontWeight: 600, cursor: "pointer" }}
+          >
+            Coba Lagi
+          </button>
         </div>
       </div>
     );

@@ -22,9 +22,36 @@ const PALETTE = ["#3B5D50", "#C4632B", "#7C5A8B", "#35617A", "#8A7B5E", "#C99A44
 const nextColor = (list) => PALETTE[list.length % PALETTE.length];
 
 const rupiah = (n) => "Rp" + Math.round(n || 0).toLocaleString("id-ID");
-const monthKey = (d) => d.toISOString().slice(0, 7);
-const todayStr = () => new Date().toISOString().slice(0, 10);
-const getDefaultBudgets = (expenseList) => Object.fromEntries(expenseList.map((c) => [c.key, 0]));
+
+// Semua helper tanggal memakai zona waktu lokal. Jangan pakai toISOString() di sini:
+// ia mengonversi ke UTC, sehingga di WIB (UTC+7) jam 00.00–06.59 dianggap masih hari/bulan kemarin.
+const pad = (n) => String(n).padStart(2, "0");
+const monthKey = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}`; // "2026-10"
+const todayStr = () => {
+  const d = new Date();
+  return `${monthKey(d)}-${pad(d.getDate())}`;
+};
+const lastDayOfMonth = (key) => {
+  const [y, m] = key.split("-").map(Number);
+  return `${key}-${pad(new Date(y, m, 0).getDate())}`;
+};
+const monthName = (key) => {
+  const [y, m] = key.split("-").map(Number);
+  return new Date(y, m - 1, 1).toLocaleDateString("id-ID", { month: "long", year: "numeric" });
+};
+// Tanggal awal untuk form: hari ini kalau bulan yang dilihat adalah bulan ini, selain itu tanggal 1.
+const defaultDateFor = (key) => (todayStr().startsWith(key) ? todayStr() : `${key}-01`);
+
+// Anggaran disimpan per bulan: { "2026-10": { Tagihan: 500000, ... } }.
+// Format lama (satu anggaran { Tagihan: 500000, ... } untuk semua bulan) dipindahkan ke
+// setiap bulan yang sudah punya transaksi, ditambah bulan ini, supaya angka yang sudah dilihat tidak hilang.
+const migrateBudgets = (raw, txs) => {
+  if (!raw) return {};
+  if (!Object.values(raw).some((v) => typeof v === "number")) return raw;
+  const months = new Set(txs.map((t) => t.date.slice(0, 7)));
+  months.add(monthKey(new Date()));
+  return Object.fromEntries([...months].map((m) => [m, { ...raw }]));
+};
 
 export default function ExpenseTracker() {
   const [session, setSession] = useState(null);
@@ -38,12 +65,11 @@ export default function ExpenseTracker() {
   const [loadError, setLoadError] = useState("");
   const [retryCount, setRetryCount] = useState(0);
   const [transactions, setTransactions] = useState([]);
-  const [budgets, setBudgets] = useState(getDefaultBudgets(DEFAULT_EXPENSE));
+  const [budgets, setBudgets] = useState({}); // { "YYYY-MM": { [kelompok]: nominal } }
   const [categories, setCategories] = useState({ pemasukan: DEFAULT_INCOME, pengeluaran: DEFAULT_EXPENSE });
   const [cursor, setCursor] = useState(() => {
-    const d = new Date();
-    d.setDate(1);
-    return d;
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth(), 1);
   });
 
   const listFor = (type) => categories[type];
@@ -58,7 +84,7 @@ export default function ExpenseTracker() {
 
   const [showSettings, setShowSettings] = useState(false);
   const [settingsTab, setSettingsTab] = useState("anggaran");
-  const [budgetDraft, setBudgetDraft] = useState(budgets);
+  const [budgetDraft, setBudgetDraft] = useState({});
   const [manageType, setManageType] = useState("pengeluaran");
   const [newCatName, setNewCatName] = useState("");
   const [subDrafts, setSubDrafts] = useState({});
@@ -99,7 +125,7 @@ export default function ExpenseTracker() {
     await supabase.auth.signOut();
     setLoaded(false);
     setTransactions([]);
-    setBudgets(getDefaultBudgets(DEFAULT_EXPENSE));
+    setBudgets({});
     setCategories({ pemasukan: DEFAULT_INCOME, pengeluaran: DEFAULT_EXPENSE });
   }
 
@@ -128,7 +154,7 @@ export default function ExpenseTracker() {
           }));
           setCategories(loadedCats);
           setTransactions(normalized);
-          setBudgets({ ...getDefaultBudgets(loadedCats.pengeluaran), ...(parsed.budgets || {}) });
+          setBudgets(migrateBudgets(parsed.budgets, normalized));
           if (loadedCats.pengeluaran[0]) {
             setFCategory(loadedCats.pengeluaran[0].key);
             setFSub(loadedCats.pengeluaran[0].subs[0]);
@@ -160,8 +186,11 @@ export default function ExpenseTracker() {
     })();
   }, [transactions, budgets, categories, loaded, session]);
 
-  const monthLabel = cursor.toLocaleDateString("id-ID", { month: "long", year: "numeric" });
   const mKey = monthKey(cursor);
+  const monthLabel = monthName(mKey);
+  const monthBudget = budgets[mKey] || {};
+  // Bulan terdekat sebelum bulan ini yang punya anggaran (untuk tombol "Salin").
+  const prevBudgetKey = Object.keys(budgets).filter((k) => k < mKey).sort().pop();
   const monthTx = useMemo(() => transactions.filter((t) => t.date.startsWith(mKey)), [transactions, mKey]);
   const incomeTx = useMemo(() => monthTx.filter((t) => t.type === "pemasukan"), [monthTx]);
   const expenseTx = useMemo(() => monthTx.filter((t) => t.type === "pengeluaran"), [monthTx]);
@@ -177,14 +206,14 @@ export default function ExpenseTracker() {
   const totalPemasukan = incomeTx.reduce((s, t) => s + t.amount, 0);
   const totalPengeluaran = categories.pengeluaran.filter((c) => c.key !== "Tabungan").reduce((s, c) => s + (spentByCategory[c.key] || 0), 0);
   const totalTabungan = spentByCategory["Tabungan"] || 0;
-  const totalBudgetPengeluaran = categories.pengeluaran.filter((c) => c.key !== "Tabungan").reduce((s, c) => s + (budgets[c.key] || 0), 0);
+  const totalBudgetPengeluaran = categories.pengeluaran.filter((c) => c.key !== "Tabungan").reduce((s, c) => s + (monthBudget[c.key] || 0), 0);
   const sisaBudget = totalBudgetPengeluaran - totalPengeluaran;
   const saldo = totalPemasukan - totalPengeluaran - totalTabungan;
 
   function changeMonth(delta) {
-    const d = new Date(cursor);
-    d.setMonth(d.getMonth() + delta);
-    setCursor(d);
+    const next = new Date(cursor.getFullYear(), cursor.getMonth() + delta, 1);
+    setCursor(next);
+    setFDate(defaultDateFor(monthKey(next))); // tanggal form selalu berada di bulan yang sedang dilihat
   }
 
   function switchType(type) {
@@ -197,7 +226,7 @@ export default function ExpenseTracker() {
   function submitTransaction(e) {
     e.preventDefault();
     const amt = Number(fAmount);
-    if (!amt || amt <= 0 || !fSub) return;
+    if (!amt || amt <= 0 || !fSub || !fDate.startsWith(mKey)) return;
     const tx = {
       id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
       type: fType,
@@ -216,24 +245,28 @@ export default function ExpenseTracker() {
     setTransactions((prev) => prev.filter((t) => t.id !== id));
   }
 
-  function openSettings(tab) {
-    setBudgetDraft(budgets);
-    setSettingsTab(tab || "anggaran");
+  function openSettings() {
+    setBudgetDraft(monthBudget);
+    setSettingsTab("anggaran");
     setShowSettings(true);
   }
 
   function saveSettings() {
-    setBudgets(budgetDraft);
+    setBudgets((prev) => ({ ...prev, [mKey]: budgetDraft }));
     setShowSettings(false);
   }
 
   function clearAllData() {
-    if (window.confirm("Hapus semua transaksi dan anggaran? Tindakan ini tidak bisa dibatalkan.")) {
+    if (window.confirm("Hapus semua transaksi dan anggaran (semua bulan)? Tindakan ini tidak bisa dibatalkan.")) {
       setTransactions([]);
-      setBudgets(getDefaultBudgets(categories.pengeluaran));
+      setBudgets({});
       setShowSettings(false);
     }
   }
+
+  // Terapkan fungsi ke anggaran setiap bulan (dipakai saat kelompok diganti nama / dihapus).
+  const updateAllBudgets = (fn) =>
+    setBudgets((prev) => Object.fromEntries(Object.entries(prev).map(([m, b]) => [m, fn(b)])));
 
   // ---- Manajemen kelompok & sub-kelompok ----
   function renameCategory(type, oldKey, rawNewKey) {
@@ -246,9 +279,10 @@ export default function ExpenseTracker() {
     setCategories((prev) => ({ ...prev, [type]: prev[type].map((c) => (c.key === oldKey ? { ...c, key: newKey } : c)) }));
     setTransactions((prev) => prev.map((t) => (t.category === oldKey ? { ...t, category: newKey } : t)));
     if (type === "pengeluaran") {
-      setBudgets((prev) => {
-        const { [oldKey]: val, ...rest } = prev;
-        return { ...rest, [newKey]: val ?? 0 };
+      updateAllBudgets((b) => {
+        if (!(oldKey in b)) return b;
+        const { [oldKey]: val, ...rest } = b;
+        return { ...rest, [newKey]: val };
       });
     }
     if (fCategory === oldKey) setFCategory(newKey);
@@ -263,7 +297,6 @@ export default function ExpenseTracker() {
     }
     const newCat = { key: name, color: nextColor(categories[type]), subs: ["Lainnya"] };
     setCategories((prev) => ({ ...prev, [type]: [...prev[type], newCat] }));
-    if (type === "pengeluaran") setBudgets((prev) => ({ ...prev, [name]: 0 }));
     setNewCatName("");
   }
 
@@ -275,8 +308,8 @@ export default function ExpenseTracker() {
     if (!window.confirm(`Hapus kelompok "${key}"? Transaksi lama tetap ada di riwayat, tapi tidak lagi dihitung dalam ringkasan dan anggaran.`)) return;
     setCategories((prev) => ({ ...prev, [type]: prev[type].filter((c) => c.key !== key) }));
     if (type === "pengeluaran") {
-      setBudgets((prev) => {
-        const { [key]: _, ...rest } = prev;
+      updateAllBudgets((b) => {
+        const { [key]: _, ...rest } = b;
         return rest;
       });
     }
@@ -360,7 +393,6 @@ export default function ExpenseTracker() {
     .login-card button { width: 100%; background: #1E3932; color: #fff; border: none; border-radius: 8px; padding: 12px; font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 7px; }
     .login-card button:disabled { opacity: 0.6; cursor: default; }
     .login-msg { font-size: 13px; margin-top: 14px; }
-    .login-msg.ok { color: #2E6F6B; }
     .login-msg.err { color: #B4483C; }
   `;
 
@@ -539,6 +571,7 @@ export default function ExpenseTracker() {
         .panel-actions button { flex: 1; border-radius: 8px; padding: 11px; font-size: 13px; cursor: pointer; min-height: 42px; }
         .btn-primary { background: var(--primary); color: #fff; border: none; }
         .btn-ghost { background: none; border: 1px solid var(--line); color: var(--ink); }
+        .copy-budget-btn { width: 100%; border-radius: 8px; padding: 9px; font-size: 12.5px; cursor: pointer; margin-bottom: 14px; }
         .btn-danger-text { background: none; border: none; color: var(--danger); font-size: 12px; cursor: pointer; margin-top: 14px; text-decoration: underline; padding: 4px 0; }
 
         .manage-type-toggle { display: flex; gap: 8px; margin-bottom: 16px; }
@@ -579,7 +612,7 @@ export default function ExpenseTracker() {
         <div className="title-row">
           <h1>Catatan Keuangan</h1>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-            <button className="icon-action-btn" onClick={() => openSettings("anggaran")} aria-label="Pengaturan" title="Pengaturan">
+            <button className="icon-action-btn" onClick={openSettings} aria-label="Pengaturan" title="Pengaturan">
               <Settings2 size={17} />
             </button>
             <button className="icon-action-btn" onClick={signOut} aria-label="Keluar" title="Keluar">
@@ -619,7 +652,7 @@ export default function ExpenseTracker() {
           <div className="budget-grid">
             {categories.pengeluaran.map((c) => {
               const spent = spentByCategory[c.key] || 0;
-              const budget = budgets[c.key] || 0;
+              const budget = monthBudget[c.key] || 0;
               const isSavings = c.key === "Tabungan";
               const pct = budget > 0 ? Math.min((spent / budget) * 100, 100) : spent > 0 ? 100 : 0;
               let fillColor = c.color;
@@ -662,7 +695,14 @@ export default function ExpenseTracker() {
           <form className="tx-form" onSubmit={submitTransaction}>
             <div className="field">
               <label>Tanggal</label>
-              <input type="date" value={fDate} onChange={(e) => setFDate(e.target.value)} required />
+              <input
+                type="date"
+                value={fDate}
+                min={`${mKey}-01`}
+                max={lastDayOfMonth(mKey)}
+                onChange={(e) => setFDate(e.target.value)}
+                required
+              />
             </div>
             <div className="field">
               <label>Kelompok</label>
@@ -791,6 +831,14 @@ export default function ExpenseTracker() {
 
             {settingsTab === "anggaran" && (
               <>
+                <p style={{ fontSize: 13, color: "var(--ink-soft)", margin: "0 0 14px" }}>
+                  Anggaran untuk <strong>{monthLabel}</strong>. Bulan lain punya anggaran sendiri.
+                </p>
+                {prevBudgetKey && (
+                  <button className="btn-ghost copy-budget-btn" type="button" onClick={() => setBudgetDraft({ ...budgets[prevBudgetKey] })}>
+                    Salin dari {monthName(prevBudgetKey)}
+                  </button>
+                )}
                 {categories.pengeluaran.map((c) => (
                   <div className="budget-row" key={c.key}>
                     <label><span className="dot" style={{ background: c.color }}></span>{c.key}</label>

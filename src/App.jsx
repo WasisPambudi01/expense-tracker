@@ -2,13 +2,14 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { ChevronLeft, ChevronRight, Trash2, Pencil, Settings2, X, Plus, LogOut, Mail } from "lucide-react";
 import { supabase } from "./supabaseClient";
 
-// Warna kategori: turunan dari palet putih gading #F9F5F0, krem #F2EAD3, oranye #F4991A, hijau #344F1F.
-const PALETTE = ["#344F1F", "#F4991A", "#6B8E3A", "#C97B0E", "#9DB36B", "#E0B96A", "#1F3312", "#D9822B", "#7A6A3A", "#F7BE6B", "#50673A", "#B8A878"];
-// Palet-palet sebelumnya (hijau pertama, lalu navy). Warna kategori tersimpan di database,
+// Warna kategori: turunan dari palet krem #FAF2DA, sage #8E9775, zaitun #4A503D, salmon #E28F83.
+const PALETTE = ["#4A503D", "#E28F83", "#8E9775", "#B5645A", "#6B7554", "#D9C48A", "#2F3427", "#F0B5AC", "#A8B08F", "#8C6A5B", "#5B6347", "#C9A98F"];
+// Palet-palet sebelumnya (hijau awal, navy, hijau-oranye). Warna kategori tersimpan di database,
 // jadi dipetakan sekali saat data dimuat (indeks sama = warna yang sama).
 const OLD_PALETTES = [
   ["#3B5D50", "#C4632B", "#7C5A8B", "#35617A", "#8A7B5E", "#C99A44", "#2E6F6B", "#B98A2E", "#4A6FA5", "#7A7A6E", "#9C4F4F", "#5C7A99"],
   ["#0A2947", "#8B5E3C", "#4F7396", "#B88458", "#6B6D52", "#C9A56A", "#2C4F74", "#5C3A22", "#8DA2B7", "#A59E7F", "#3A3C2B", "#D2A27E"],
+  ["#344F1F", "#F4991A", "#6B8E3A", "#C97B0E", "#9DB36B", "#E0B96A", "#1F3312", "#D9822B", "#7A6A3A", "#F7BE6B", "#50673A", "#B8A878"],
 ];
 const COLOR_MIGRATION = Object.fromEntries(OLD_PALETTES.flatMap((old) => old.map((c, i) => [c, PALETTE[i]])));
 const recolor = (list) => list.map((c) => ({ ...c, color: COLOR_MIGRATION[c.color] || c.color }));
@@ -475,21 +476,21 @@ export default function ExpenseTracker() {
 
   const loginStyles = `
     @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Raleway:wght@400;500;600;700&display=swap');
-    .login-wrap { min-height: 100vh; background-color: #F2EAD3; background-image: radial-gradient(#E1D6B3 1.2px, transparent 1.2px); background-size: 16px 16px; display: flex; align-items: center; justify-content: center; padding: 20px; font-family: 'Raleway', system-ui, sans-serif; font-variant-numeric: lining-nums; }
-    .login-card { background: #F9F5F0; border: 2px solid #344F1F; border-radius: 6px; box-shadow: 5px 5px 0 #F4991A; padding: 32px; width: 100%; max-width: 380px; text-align: center; }
-    .login-card h1 { font-family: 'Playfair Display', Georgia, serif; font-weight: 700; color: #344F1F; font-size: 28px; margin: 0 0 6px; }
-    .login-card p { color: #5F6B4E; font-size: 13.5px; margin: 0 0 22px; line-height: 1.5; }
-    .login-card input { width: 100%; font-family: inherit; color: #344F1F; background: #F2EAD3; border: 2px solid #344F1F; border-radius: 4px; padding: 11px 12px; font-size: 14px; margin-bottom: 12px; box-sizing: border-box; }
-    .login-card input:focus { outline: 2px solid #8F4A00; outline-offset: 1px; }
-    .login-card button { width: 100%; font-family: inherit; background: #344F1F; color: #F2EAD3; border: 2px solid #344F1F; border-radius: 4px; box-shadow: 3px 3px 0 #F4991A; padding: 12px; font-size: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 7px; }
-    .login-card button:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 #F4991A; }
+    .login-wrap { min-height: 100vh; background-color: #FAF2DA; background-image: radial-gradient(#E9E0C0 1.2px, transparent 1.2px); background-size: 16px 16px; display: flex; align-items: center; justify-content: center; padding: 20px; font-family: 'Raleway', system-ui, sans-serif; font-variant-numeric: lining-nums; }
+    .login-card { background: #FEFAEE; border: 2px solid #4A503D; border-radius: 6px; box-shadow: 5px 5px 0 #E28F83; padding: 32px; width: 100%; max-width: 380px; text-align: center; }
+    .login-card h1 { font-family: 'Playfair Display', Georgia, serif; font-weight: 700; color: #4A503D; font-size: 28px; margin: 0 0 6px; }
+    .login-card p { color: #656B54; font-size: 13.5px; margin: 0 0 22px; line-height: 1.5; }
+    .login-card input { width: 100%; font-family: inherit; color: #4A503D; background: #FAF2DA; border: 2px solid #4A503D; border-radius: 4px; padding: 11px 12px; font-size: 14px; margin-bottom: 12px; box-sizing: border-box; }
+    .login-card input:focus { outline: 2px solid #94483C; outline-offset: 1px; }
+    .login-card button { width: 100%; font-family: inherit; background: #4A503D; color: #FAF2DA; border: 2px solid #4A503D; border-radius: 4px; box-shadow: 3px 3px 0 #E28F83; padding: 12px; font-size: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 7px; }
+    .login-card button:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 #E28F83; }
     .login-card button:disabled { opacity: 0.6; cursor: default; }
     .login-msg { font-size: 13px; margin-top: 14px; }
-    .login-msg.err { color: #B3361F; }
+    .login-msg.err { color: #B3261E; }
   `;
 
   if (checkingSession) {
-    return <div style={{ padding: 40, minHeight: "100vh", background: "#F2EAD3", fontFamily: "'Raleway', system-ui, sans-serif", color: "#5F6B4E" }}>Memuat…</div>;
+    return <div style={{ padding: 40, minHeight: "100vh", background: "#FAF2DA", fontFamily: "'Raleway', system-ui, sans-serif", color: "#656B54" }}>Memuat…</div>;
   }
 
   if (!session) {
@@ -549,7 +550,7 @@ export default function ExpenseTracker() {
   }
 
   if (!loaded) {
-    return <div style={{ padding: 40, minHeight: "100vh", background: "#F2EAD3", fontFamily: "'Raleway', system-ui, sans-serif", color: "#5F6B4E" }}>Memuat data…</div>;
+    return <div style={{ padding: 40, minHeight: "100vh", background: "#FAF2DA", fontFamily: "'Raleway', system-ui, sans-serif", color: "#656B54" }}>Memuat data…</div>;
   }
 
   return (
@@ -558,23 +559,23 @@ export default function ExpenseTracker() {
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Raleway:wght@400;500;600;700&display=swap');
 
         .app {
-          /* Palet: putih gading #F9F5F0, krem #F2EAD3, oranye #F4991A, hijau #344F1F (+ turunannya) */
-          --bg: #F2EAD3;
-          --surface: #F9F5F0;
-          --ink: #344F1F;
-          --ink-soft: #5F6B4E;
-          --line: #CFC5A3;
-          --track: #E6DCBB;
-          --dots: #E1D6B3;
-          --primary: #344F1F;
-          --accent: #F4991A; /* hanya untuk isian, bayangan, dan garis: kontras dengan teks terlalu rendah */
-          --warn-text: #8F4A00; /* oranye tua: pengganti --accent untuk teks dan ikon */
-          --income: #4C6B2A;
-          --savings: #8F4A00;
-          --danger: #B3361F;
-          --hero-gold: #F4991A;
-          --hero-pos: #F9F5F0;
-          --hero-neg: #F2A58E;
+          /* Palet: krem #FAF2DA, sage #8E9775, zaitun #4A503D, salmon #E28F83 (+ turunannya) */
+          --bg: #FAF2DA;
+          --surface: #FEFAEE;
+          --ink: #4A503D;
+          --ink-soft: #656B54;
+          --line: #D9D0B0;
+          --track: #E9E0C0;
+          --dots: #E9E0C0;
+          --primary: #4A503D;
+          --accent: #E28F83; /* hanya untuk isian, bayangan, dan garis: kontras dengan teks terlalu rendah (2,2:1) */
+          --warn-text: #94483C; /* salmon tua: pengganti --accent untuk teks dan ikon */
+          --income: #66704F;
+          --savings: #94483C;
+          --danger: #B3261E;
+          --hero-gold: #E28F83;
+          --hero-pos: #FEFAEE;
+          --hero-neg: #FFB3A5;
           --display: 'Playfair Display', Georgia, serif;
           --body: 'Raleway', system-ui, -apple-system, 'Segoe UI', sans-serif;
           background-color: var(--bg);
@@ -647,7 +648,7 @@ export default function ExpenseTracker() {
         .dot { width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid var(--ink); display: inline-block; margin-right: 7px; flex-shrink: 0; }
         .budget-card .amounts { font-size: 12px; color: var(--ink-soft); margin-bottom: 8px; word-break: break-word; }
         .track { background: var(--track); border: 1.5px solid var(--ink); border-radius: 3px; height: 12px; overflow: hidden; }
-        .fill { height: 100%; transition: width 0.3s ease; background-image: repeating-linear-gradient(135deg, rgba(249,245,240,0.28) 0 5px, transparent 5px 10px); }
+        .fill { height: 100%; transition: width 0.3s ease; background-image: repeating-linear-gradient(135deg, rgba(254,250,238,0.28) 0 5px, transparent 5px 10px); }
         .status-line { font-size: 11.5px; font-weight: 700; margin-top: 8px; }
 
         .history-controls { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
@@ -678,7 +679,7 @@ export default function ExpenseTracker() {
         .row-btn.del:hover { color: var(--danger); }
         .empty { color: var(--ink-soft); font-size: 13px; padding: 20px 0; text-align: center; }
 
-        .overlay { position: fixed; inset: 0; background: rgba(52,79,31,0.55); display: flex; align-items: center; justify-content: center; z-index: 50; padding: 20px; }
+        .overlay { position: fixed; inset: 0; background: rgba(74,80,61,0.55); display: flex; align-items: center; justify-content: center; z-index: 50; padding: 20px; }
         .panel { background: var(--surface); border: 2px solid var(--ink); border-radius: 6px; box-shadow: 6px 6px 0 var(--accent); padding: 24px; width: 100%; max-width: 480px; max-height: 85vh; overflow-y: auto; }
         .panel-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
         .panel-head h2 { font-family: var(--display); font-weight: 700; font-size: 22px; margin: 0; }

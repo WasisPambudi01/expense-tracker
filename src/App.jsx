@@ -2,12 +2,16 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { ChevronLeft, ChevronRight, Trash2, Pencil, Settings2, X, Plus, LogOut, Mail } from "lucide-react";
 import { supabase } from "./supabaseClient";
 
-// Warna kategori: turunan dari palet navy #0A2947, krem #F3E4C9, sage #D3D4C0, cokelat #8B5E3C.
-const PALETTE = ["#0A2947", "#8B5E3C", "#4F7396", "#B88458", "#6B6D52", "#C9A56A", "#2C4F74", "#5C3A22", "#8DA2B7", "#A59E7F", "#3A3C2B", "#D2A27E"];
-// Palet lama (hijau/oranye). Warna kategori tersimpan di database, jadi dipetakan sekali saat data dimuat.
-const LEGACY_PALETTE = ["#3B5D50", "#C4632B", "#7C5A8B", "#35617A", "#8A7B5E", "#C99A44", "#2E6F6B", "#B98A2E", "#4A6FA5", "#7A7A6E", "#9C4F4F", "#5C7A99"];
-const LEGACY_COLOR_MAP = Object.fromEntries(LEGACY_PALETTE.map((c, i) => [c, PALETTE[i]]));
-const recolor = (list) => list.map((c) => ({ ...c, color: LEGACY_COLOR_MAP[c.color] || c.color }));
+// Warna kategori: turunan dari palet putih gading #F9F5F0, krem #F2EAD3, oranye #F4991A, hijau #344F1F.
+const PALETTE = ["#344F1F", "#F4991A", "#6B8E3A", "#C97B0E", "#9DB36B", "#E0B96A", "#1F3312", "#D9822B", "#7A6A3A", "#F7BE6B", "#50673A", "#B8A878"];
+// Palet-palet sebelumnya (hijau pertama, lalu navy). Warna kategori tersimpan di database,
+// jadi dipetakan sekali saat data dimuat (indeks sama = warna yang sama).
+const OLD_PALETTES = [
+  ["#3B5D50", "#C4632B", "#7C5A8B", "#35617A", "#8A7B5E", "#C99A44", "#2E6F6B", "#B98A2E", "#4A6FA5", "#7A7A6E", "#9C4F4F", "#5C7A99"],
+  ["#0A2947", "#8B5E3C", "#4F7396", "#B88458", "#6B6D52", "#C9A56A", "#2C4F74", "#5C3A22", "#8DA2B7", "#A59E7F", "#3A3C2B", "#D2A27E"],
+];
+const COLOR_MIGRATION = Object.fromEntries(OLD_PALETTES.flatMap((old) => old.map((c, i) => [c, PALETTE[i]])));
+const recolor = (list) => list.map((c) => ({ ...c, color: COLOR_MIGRATION[c.color] || c.color }));
 
 const DEFAULT_EXPENSE = [
   { key: "Tagihan", color: PALETTE[0], subs: ["Listrik", "Air", "Internet/WiFi", "Pulsa & Paket Data", "Sewa/Kos", "Asuransi", "Lainnya"] },
@@ -470,22 +474,22 @@ export default function ExpenseTracker() {
   );
 
   const loginStyles = `
-    @import url('https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Courier+Prime:wght@400;700&display=swap');
-    .login-wrap { min-height: 100vh; background-color: #F3E4C9; background-image: radial-gradient(#D3D4C0 1.2px, transparent 1.2px); background-size: 16px 16px; display: flex; align-items: center; justify-content: center; padding: 20px; font-family: 'Courier Prime', 'Courier New', monospace; }
-    .login-card { background: #FAF2E1; border: 2px solid #0A2947; border-radius: 6px; box-shadow: 5px 5px 0 #8B5E3C; padding: 32px; width: 100%; max-width: 380px; text-align: center; }
-    .login-card h1 { font-family: 'Abril Fatface', Georgia, serif; font-weight: 400; color: #0A2947; font-size: 28px; margin: 0 0 6px; }
-    .login-card p { color: #46586E; font-size: 13.5px; margin: 0 0 22px; line-height: 1.5; }
-    .login-card input { width: 100%; font-family: inherit; color: #0A2947; background: #F3E4C9; border: 2px solid #0A2947; border-radius: 4px; padding: 11px 12px; font-size: 14px; margin-bottom: 12px; box-sizing: border-box; }
-    .login-card input:focus { outline: 2px solid #8B5E3C; outline-offset: 1px; }
-    .login-card button { width: 100%; font-family: inherit; background: #0A2947; color: #F3E4C9; border: 2px solid #0A2947; border-radius: 4px; box-shadow: 3px 3px 0 #8B5E3C; padding: 12px; font-size: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 7px; }
-    .login-card button:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 #8B5E3C; }
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Raleway:wght@400;500;600;700&display=swap');
+    .login-wrap { min-height: 100vh; background-color: #F2EAD3; background-image: radial-gradient(#E1D6B3 1.2px, transparent 1.2px); background-size: 16px 16px; display: flex; align-items: center; justify-content: center; padding: 20px; font-family: 'Raleway', system-ui, sans-serif; font-variant-numeric: lining-nums; }
+    .login-card { background: #F9F5F0; border: 2px solid #344F1F; border-radius: 6px; box-shadow: 5px 5px 0 #F4991A; padding: 32px; width: 100%; max-width: 380px; text-align: center; }
+    .login-card h1 { font-family: 'Playfair Display', Georgia, serif; font-weight: 700; color: #344F1F; font-size: 28px; margin: 0 0 6px; }
+    .login-card p { color: #5F6B4E; font-size: 13.5px; margin: 0 0 22px; line-height: 1.5; }
+    .login-card input { width: 100%; font-family: inherit; color: #344F1F; background: #F2EAD3; border: 2px solid #344F1F; border-radius: 4px; padding: 11px 12px; font-size: 14px; margin-bottom: 12px; box-sizing: border-box; }
+    .login-card input:focus { outline: 2px solid #8F4A00; outline-offset: 1px; }
+    .login-card button { width: 100%; font-family: inherit; background: #344F1F; color: #F2EAD3; border: 2px solid #344F1F; border-radius: 4px; box-shadow: 3px 3px 0 #F4991A; padding: 12px; font-size: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 7px; }
+    .login-card button:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 #F4991A; }
     .login-card button:disabled { opacity: 0.6; cursor: default; }
     .login-msg { font-size: 13px; margin-top: 14px; }
-    .login-msg.err { color: #A63A2B; }
+    .login-msg.err { color: #B3361F; }
   `;
 
   if (checkingSession) {
-    return <div style={{ padding: 40, minHeight: "100vh", background: "#F3E4C9", fontFamily: "'Courier Prime', 'Courier New', monospace", color: "#46586E" }}>Memuat…</div>;
+    return <div style={{ padding: 40, minHeight: "100vh", background: "#F2EAD3", fontFamily: "'Raleway', system-ui, sans-serif", color: "#5F6B4E" }}>Memuat…</div>;
   }
 
   if (!session) {
@@ -545,44 +549,48 @@ export default function ExpenseTracker() {
   }
 
   if (!loaded) {
-    return <div style={{ padding: 40, minHeight: "100vh", background: "#F3E4C9", fontFamily: "'Courier Prime', 'Courier New', monospace", color: "#46586E" }}>Memuat data…</div>;
+    return <div style={{ padding: 40, minHeight: "100vh", background: "#F2EAD3", fontFamily: "'Raleway', system-ui, sans-serif", color: "#5F6B4E" }}>Memuat data…</div>;
   }
 
   return (
     <div className="app">
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Courier+Prime:wght@400;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Raleway:wght@400;500;600;700&display=swap');
 
         .app {
-          /* Palet: navy #0A2947, krem #F3E4C9, sage #D3D4C0, cokelat #8B5E3C (+ turunannya) */
-          --bg: #F3E4C9;
-          --surface: #FAF2E1;
-          --ink: #0A2947;
-          --ink-soft: #46586E;
-          --line: #C9C8B0;
-          --track: #D3D4C0;
-          --primary: #0A2947;
-          --accent: #8B5E3C;
-          --income: #8B5E3C;
-          --savings: #2C4F74;
-          --danger: #A63A2B;
-          --hero-gold: #D9A877;
-          --hero-pos: #F3E4C9;
+          /* Palet: putih gading #F9F5F0, krem #F2EAD3, oranye #F4991A, hijau #344F1F (+ turunannya) */
+          --bg: #F2EAD3;
+          --surface: #F9F5F0;
+          --ink: #344F1F;
+          --ink-soft: #5F6B4E;
+          --line: #CFC5A3;
+          --track: #E6DCBB;
+          --dots: #E1D6B3;
+          --primary: #344F1F;
+          --accent: #F4991A; /* hanya untuk isian, bayangan, dan garis: kontras dengan teks terlalu rendah */
+          --warn-text: #8F4A00; /* oranye tua: pengganti --accent untuk teks dan ikon */
+          --income: #4C6B2A;
+          --savings: #8F4A00;
+          --danger: #B3361F;
+          --hero-gold: #F4991A;
+          --hero-pos: #F9F5F0;
           --hero-neg: #F2A58E;
-          --display: 'Abril Fatface', Georgia, serif;
-          --mono: 'Courier Prime', 'Courier New', monospace;
+          --display: 'Playfair Display', Georgia, serif;
+          --body: 'Raleway', system-ui, -apple-system, 'Segoe UI', sans-serif;
           background-color: var(--bg);
-          background-image: radial-gradient(var(--track) 1.2px, transparent 1.2px);
+          background-image: radial-gradient(var(--dots) 1.2px, transparent 1.2px);
           background-size: 16px 16px;
           color: var(--ink);
-          font-family: var(--mono);
+          font-family: var(--body);
+          font-weight: 500;
+          font-variant-numeric: lining-nums; /* Playfair & Raleway: angka bawaannya gaya lama (naik-turun) */
           font-size: 14px;
           min-height: 100vh;
           padding: clamp(14px, 4vw, 28px);
           box-sizing: border-box;
         }
         .app * { box-sizing: border-box; }
-        .app input, .app select, .app button { font-family: inherit; }
+        .app input, .app select, .app button { font-family: inherit; font-variant-numeric: inherit; }
         .wrap { max-width: 880px; margin: 0 auto; }
 
         .month-nav { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
@@ -591,12 +599,12 @@ export default function ExpenseTracker() {
         .month-label { font-size: 13px; font-weight: 700; letter-spacing: 0.14em; color: var(--ink); }
 
         .title-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 22px; flex-wrap: wrap; gap: 10px; }
-        h1 { font-family: var(--display); font-weight: 400; font-size: clamp(26px, 5vw, 36px); letter-spacing: 0.01em; margin: 0; color: var(--ink); }
+        h1 { font-family: var(--display); font-weight: 700; font-size: clamp(26px, 5vw, 36px); margin: 0; color: var(--ink); }
         .icon-action-btn { background: var(--surface); border: 2px solid var(--ink); border-radius: 4px; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--ink); flex-shrink: 0; }
         .icon-action-btn:hover { background: var(--ink); color: var(--bg); }
 
         .hero { background: var(--primary); border: 2px solid var(--ink); border-radius: 6px; box-shadow: 5px 5px 0 var(--accent); padding: clamp(18px, 3vw, 26px); display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 20px; margin-bottom: 24px; }
-        .hero-item .lbl { color: var(--track); font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 6px; }
+        .hero-item .lbl { color: var(--track); font-weight: 600; font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 6px; }
         .hero-item .val { font-size: clamp(18px, 3vw, 24px); font-weight: 700; color: var(--bg); word-break: break-word; }
         .hero-item .sub { font-size: 11.5px; margin-top: 4px; }
         .sub.pos { color: var(--hero-pos); }
@@ -604,7 +612,7 @@ export default function ExpenseTracker() {
 
         .card { background: var(--surface); border: 2px solid var(--ink); border-radius: 6px; box-shadow: 4px 4px 0 var(--accent); padding: clamp(14px, 3vw, 20px); margin-bottom: 24px; }
         .card.editing { background: var(--bg); box-shadow: 4px 4px 0 var(--ink); }
-        .card h2 { font-family: var(--display); font-weight: 400; font-size: 21px; margin: 0 0 16px; color: var(--ink); }
+        .card h2 { font-family: var(--display); font-weight: 700; font-size: 21px; margin: 0 0 16px; color: var(--ink); }
 
         .type-toggle { display: flex; gap: 8px; margin-bottom: 16px; }
         .type-toggle button { flex: 1; border: 2px solid var(--ink); border-radius: 4px; padding: 10px; font-size: 13px; font-weight: 700; cursor: pointer; background: var(--bg); color: var(--ink); min-height: 42px; }
@@ -616,7 +624,7 @@ export default function ExpenseTracker() {
         .field.note, .field.items, .form-actions { grid-column: 1 / -1; }
         .field label { font-size: 12px; color: var(--ink-soft); }
         .field input, .field select, .item-row input { border: 2px solid var(--ink); border-radius: 4px; padding: 10px; font-size: 14px; background: var(--bg); color: var(--ink); min-height: 42px; width: 100%; }
-        .field input:focus, .field select:focus, .item-row input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+        .field input:focus, .field select:focus, .item-row input:focus { outline: 2px solid var(--warn-text); outline-offset: 1px; }
         .field input[readonly] { background: var(--track); font-weight: 700; }
 
         .items-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
@@ -639,7 +647,7 @@ export default function ExpenseTracker() {
         .dot { width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid var(--ink); display: inline-block; margin-right: 7px; flex-shrink: 0; }
         .budget-card .amounts { font-size: 12px; color: var(--ink-soft); margin-bottom: 8px; word-break: break-word; }
         .track { background: var(--track); border: 1.5px solid var(--ink); border-radius: 3px; height: 12px; overflow: hidden; }
-        .fill { height: 100%; transition: width 0.3s ease; background-image: repeating-linear-gradient(135deg, rgba(243,228,201,0.28) 0 5px, transparent 5px 10px); }
+        .fill { height: 100%; transition: width 0.3s ease; background-image: repeating-linear-gradient(135deg, rgba(249,245,240,0.28) 0 5px, transparent 5px 10px); }
         .status-line { font-size: 11.5px; font-weight: 700; margin-top: 8px; }
 
         .history-controls { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
@@ -657,7 +665,7 @@ export default function ExpenseTracker() {
         .tx-cat { font-size: 13px; font-weight: 700; overflow-wrap: break-word; }
         .tx-note { font-size: 12px; color: var(--ink-soft); overflow-wrap: break-word; }
         .tx-items { margin-top: 4px; font-size: 12px; }
-        .tx-items summary { cursor: pointer; color: var(--accent); font-weight: 700; width: fit-content; }
+        .tx-items summary { cursor: pointer; color: var(--warn-text); font-weight: 700; width: fit-content; }
         .tx-items ul { list-style: none; margin: 6px 0 0; padding: 8px 10px; background: var(--bg); border-left: 3px solid var(--accent); }
         .tx-items li { display: flex; justify-content: space-between; gap: 12px; padding: 2px 0; }
         .tx-items li em { font-style: normal; color: var(--ink-soft); }
@@ -666,14 +674,14 @@ export default function ExpenseTracker() {
         .tx-amount.income { color: var(--income); }
         .tx-amount.savings { color: var(--savings); }
         .row-btn { background: none; border: none; color: var(--ink-soft); cursor: pointer; padding: 6px; display: flex; flex-shrink: 0; }
-        .row-btn:hover { color: var(--accent); }
+        .row-btn:hover { color: var(--warn-text); }
         .row-btn.del:hover { color: var(--danger); }
         .empty { color: var(--ink-soft); font-size: 13px; padding: 20px 0; text-align: center; }
 
-        .overlay { position: fixed; inset: 0; background: rgba(10,41,71,0.55); display: flex; align-items: center; justify-content: center; z-index: 50; padding: 20px; }
+        .overlay { position: fixed; inset: 0; background: rgba(52,79,31,0.55); display: flex; align-items: center; justify-content: center; z-index: 50; padding: 20px; }
         .panel { background: var(--surface); border: 2px solid var(--ink); border-radius: 6px; box-shadow: 6px 6px 0 var(--accent); padding: 24px; width: 100%; max-width: 480px; max-height: 85vh; overflow-y: auto; }
         .panel-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
-        .panel-head h2 { font-family: var(--display); font-weight: 400; font-size: 22px; margin: 0; }
+        .panel-head h2 { font-family: var(--display); font-weight: 700; font-size: 22px; margin: 0; }
         .panel-head button { background: none; border: none; cursor: pointer; color: var(--ink-soft); }
 
         .tabs { display: flex; border-bottom: 2px solid var(--ink); margin-bottom: 18px; gap: 4px; }
@@ -775,6 +783,7 @@ export default function ExpenseTracker() {
               const spent = spentByCategory[c.key] || 0;
               const budget = monthBudget[c.key] || 0;
               const isSavings = c.key === "Tabungan";
+              const nearLimit = !isSavings && budget > 0 && spent <= budget && spent >= budget * 0.8;
               const pct = budget > 0 ? Math.min((spent / budget) * 100, 100) : spent > 0 ? 100 : 0;
               let fillColor = c.color;
               if (!isSavings && budget > 0) {
@@ -792,12 +801,12 @@ export default function ExpenseTracker() {
                   </div>
                   <div className="track"><div className="fill" style={{ width: `${pct}%`, background: fillColor }}></div></div>
                   {budget > 0 && (
-                    <div className="status-line" style={{ color: isSavings ? "var(--savings)" : spent > budget ? "var(--danger)" : "var(--ink-soft)" }}>
+                    <div className="status-line" style={{ color: isSavings ? "var(--savings)" : spent > budget ? "var(--danger)" : nearLimit ? "var(--warn-text)" : "var(--ink-soft)" }}>
                       {isSavings
                         ? `Terkumpul ${Math.round(pct)}% dari target`
                         : spent > budget
                         ? `Lebih ${rupiah(spent - budget)} dari anggaran`
-                        : `Sisa ${rupiah(budget - spent)}`}
+                        : `Sisa ${rupiah(budget - spent)}${nearLimit ? " — hampir habis" : ""}`}
                     </div>
                   )}
                 </div>

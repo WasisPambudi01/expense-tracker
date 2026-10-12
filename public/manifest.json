@@ -4,8 +4,8 @@
   "description": "Pencatatan pengeluaran, pemasukan, dan anggaran pribadi",
   "start_url": ".",
   "display": "standalone",
-  "background_color": "#FAF2DA",
-  "theme_color": "#4A503D",
+  "background_color": "#E0D9D9",
+  "theme_color": "#2F5755",
   "icons": [
     {
       "src": "/icon-192.png",

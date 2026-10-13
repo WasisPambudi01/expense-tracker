@@ -2,15 +2,16 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { ChevronLeft, ChevronRight, Trash2, Pencil, Settings2, X, Plus, LogOut, Mail } from "lucide-react";
 import { supabase } from "./supabaseClient";
 
-// Warna kategori: turunan dari palet maroon #432323, teal #2F5755, teal tengah #5A9690, abu #E0D9D9.
-const PALETTE = ["#2F5755", "#432323", "#5A9690", "#8A5A5A", "#8FBDB7", "#B08B8B", "#1F3B39", "#6E3A3A", "#A8C9C5", "#7D6666", "#3F6F6B", "#C9B8B8"];
-// Palet-palet sebelumnya (hijau awal, navy, hijau-oranye, zaitun-salmon). Warna kategori tersimpan di
-// database, jadi dipetakan sekali saat data dimuat (indeks sama = warna yang sama).
+// Warna kategori: turunan dari palet biru #325288, teal #24A19C, pink #D96098, krem #FAEEE7.
+const PALETTE = ["#325288", "#D96098", "#24A19C", "#1F3358", "#8FA8D6", "#F0A6C4", "#17706C", "#A8326F", "#7FD0CC", "#5A6FA3", "#6B3E5C", "#B9C7E2"];
+// Palet-palet sebelumnya. Warna kategori tersimpan di database, jadi dipetakan sekali saat data
+// dimuat (indeks sama = warna yang sama).
 const OLD_PALETTES = [
   ["#3B5D50", "#C4632B", "#7C5A8B", "#35617A", "#8A7B5E", "#C99A44", "#2E6F6B", "#B98A2E", "#4A6FA5", "#7A7A6E", "#9C4F4F", "#5C7A99"],
   ["#0A2947", "#8B5E3C", "#4F7396", "#B88458", "#6B6D52", "#C9A56A", "#2C4F74", "#5C3A22", "#8DA2B7", "#A59E7F", "#3A3C2B", "#D2A27E"],
   ["#344F1F", "#F4991A", "#6B8E3A", "#C97B0E", "#9DB36B", "#E0B96A", "#1F3312", "#D9822B", "#7A6A3A", "#F7BE6B", "#50673A", "#B8A878"],
   ["#4A503D", "#E28F83", "#8E9775", "#B5645A", "#6B7554", "#D9C48A", "#2F3427", "#F0B5AC", "#A8B08F", "#8C6A5B", "#5B6347", "#C9A98F"],
+  ["#2F5755", "#432323", "#5A9690", "#8A5A5A", "#8FBDB7", "#B08B8B", "#1F3B39", "#6E3A3A", "#A8C9C5", "#7D6666", "#3F6F6B", "#C9B8B8"],
 ];
 const COLOR_MIGRATION = Object.fromEntries(OLD_PALETTES.flatMap((old) => old.map((c, i) => [c, PALETTE[i]])));
 const recolor = (list) => list.map((c) => ({ ...c, color: COLOR_MIGRATION[c.color] || c.color }));
@@ -39,6 +40,7 @@ const itemsSum = (items) => items.reduce((sum, i) => sum + (Number(i.qty) || 0) 
 const toDraftItem = (i) => ({ id: newId(), name: i.name, qty: String(i.qty), price: String(i.price) });
 
 const rupiah = (n) => "Rp" + Math.round(n || 0).toLocaleString("id-ID");
+const Rp = ({ n }) => <span className="num">{rupiah(n)}</span>; // nominal rupiah: ditampilkan dengan font angka (DM Mono)
 
 // Semua helper tanggal memakai zona waktu lokal. Jangan pakai toISOString() di sini:
 // ia mengonversi ke UTC, sehingga di WIB (UTC+7) jam 00.00–06.59 dianggap masih hari/bulan kemarin.
@@ -456,9 +458,9 @@ export default function ExpenseTracker() {
               {t.items.map((it, i) => (
                 <li key={i}>
                   <span>
-                    {it.qty}× {it.name} <em>@{rupiah(it.price)}</em>
+                    {it.qty}× {it.name} <em>@<Rp n={it.price} /></em>
                   </span>
-                  <span>{rupiah(it.qty * it.price)}</span>
+                  <Rp n={it.qty * it.price} />
                 </li>
               ))}
             </ul>
@@ -476,22 +478,22 @@ export default function ExpenseTracker() {
   );
 
   const loginStyles = `
-    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Raleway:wght@400;500;600;700&display=swap');
-    .login-wrap { min-height: 100vh; background-color: #E0D9D9; background-image: radial-gradient(#D3CBCB 1.2px, transparent 1.2px); background-size: 16px 16px; display: flex; align-items: center; justify-content: center; padding: 20px; font-family: 'Raleway', system-ui, sans-serif; font-variant-numeric: lining-nums; }
-    .login-card { background: #F2EEEE; border: 2px solid #432323; border-radius: 6px; box-shadow: 5px 5px 0 #5A9690; padding: 32px; width: 100%; max-width: 380px; text-align: center; }
-    .login-card h1 { font-family: 'Playfair Display', Georgia, serif; font-weight: 700; color: #432323; font-size: 28px; margin: 0 0 6px; }
-    .login-card p { color: #6B5757; font-size: 13.5px; margin: 0 0 22px; line-height: 1.5; }
-    .login-card input { width: 100%; font-family: inherit; color: #432323; background: #E0D9D9; border: 2px solid #432323; border-radius: 4px; padding: 11px 12px; font-size: 14px; margin-bottom: 12px; box-sizing: border-box; }
-    .login-card input:focus { outline: 2px solid #2F5755; outline-offset: 1px; }
-    .login-card button { width: 100%; font-family: inherit; background: #2F5755; color: #F2EEEE; border: 2px solid #432323; border-radius: 4px; box-shadow: 3px 3px 0 #5A9690; padding: 12px; font-size: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 7px; }
-    .login-card button:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 #5A9690; }
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&family=DM+Sans:wght@400;500;600;700&display=swap');
+    .login-wrap { min-height: 100vh; background-color: #FAEEE7; background-image: radial-gradient(#F0DCD1 1.2px, transparent 1.2px); background-size: 16px 16px; display: flex; align-items: center; justify-content: center; padding: 20px; font-family: 'DM Sans', system-ui, sans-serif; }
+    .login-card { background: #FFF8F4; border: 2px solid #325288; border-radius: 6px; box-shadow: 5px 5px 0 #D96098; padding: 32px; width: 100%; max-width: 380px; text-align: center; }
+    .login-card h1 { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-weight: 800; color: #325288; font-size: 28px; margin: 0 0 6px; }
+    .login-card p { color: #5A6A8C; font-size: 13.5px; margin: 0 0 22px; line-height: 1.5; }
+    .login-card input { width: 100%; font-family: inherit; color: #325288; background: #FAEEE7; border: 2px solid #325288; border-radius: 4px; padding: 11px 12px; font-size: 14px; margin-bottom: 12px; box-sizing: border-box; }
+    .login-card input:focus { outline: 2px solid #0B6F6A; outline-offset: 1px; }
+    .login-card button { width: 100%; font-family: inherit; background: #325288; color: #FFF8F4; border: 2px solid #325288; border-radius: 4px; box-shadow: 3px 3px 0 #D96098; padding: 12px; font-size: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 7px; }
+    .login-card button:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 #D96098; }
     .login-card button:disabled { opacity: 0.6; cursor: default; }
     .login-msg { font-size: 13px; margin-top: 14px; }
     .login-msg.err { color: #B3261E; }
   `;
 
   if (checkingSession) {
-    return <div style={{ padding: 40, minHeight: "100vh", background: "#E0D9D9", fontFamily: "'Raleway', system-ui, sans-serif", color: "#6B5757" }}>Memuat…</div>;
+    return <div style={{ padding: 40, minHeight: "100vh", background: "#FAEEE7", fontFamily: "'DM Sans', system-ui, sans-serif", color: "#5A6A8C" }}>Memuat…</div>;
   }
 
   if (!session) {
@@ -551,64 +553,64 @@ export default function ExpenseTracker() {
   }
 
   if (!loaded) {
-    return <div style={{ padding: 40, minHeight: "100vh", background: "#E0D9D9", fontFamily: "'Raleway', system-ui, sans-serif", color: "#6B5757" }}>Memuat data…</div>;
+    return <div style={{ padding: 40, minHeight: "100vh", background: "#FAEEE7", fontFamily: "'DM Sans', system-ui, sans-serif", color: "#5A6A8C" }}>Memuat data…</div>;
   }
 
   return (
     <div className="app">
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Raleway:wght@400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
 
         .app {
-          /* Palet: maroon #432323, teal #2F5755, teal tengah #5A9690, abu #E0D9D9 (+ turunannya) */
-          --bg: #E0D9D9;
-          --surface: #F2EEEE;
-          --ink: #432323;
-          --ink-soft: #6B5757;
-          --line: #CBC2C2;
-          --track: #D3CBCB;
-          --dots: #D3CBCB;
-          --primary: #2F5755;
-          --accent: #5A9690; /* hanya untuk isian, bayangan, dan garis: kontras dengan teks terlalu rendah (2,4:1) */
-          --warn-fill: #C9923A; /* palet tidak punya warna hangat selain maroon: ambar untuk "hampir habis" */
-          --warn-text: #7A4E0C;
-          --income: #2F5755;
-          --savings: #2E6560;
+          /* Palet: biru #325288, teal #24A19C, pink #D96098, krem #FAEEE7 (+ turunannya) */
+          --bg: #FAEEE7;
+          --surface: #FFF8F4;
+          --ink: #325288;
+          --ink-soft: #5A6A8C;
+          --line: #E8D3C8;
+          --track: #F0DCD1;
+          --dots: #F0DCD1;
+          --primary: #325288;
+          --teal: #24A19C; /* teal dan pink hanya 2,8:1 dan 3,0:1 di atas krem: hanya untuk isian, bayangan, dan garis */
+          --accent: #D96098;
+          --warn-text: #A8326F; /* pink tua: pengganti --accent untuk teks */
+          --income: #0B6F6A; /* teal tua: pengganti --teal untuk teks */
+          --savings: #0B6F6A;
           --danger: #B3261E;
-          --hero-gold: #9FD0C9;
-          --hero-pos: #F2EEEE;
-          --hero-neg: #F4A9A0;
-          --display: 'Playfair Display', Georgia, serif;
-          --body: 'Raleway', system-ui, -apple-system, 'Segoe UI', sans-serif;
+          --hero-gold: #8EE0DB;
+          --hero-pos: #FFF8F4;
+          --hero-neg: #FFB0C8;
+          --display: 'Plus Jakarta Sans', system-ui, sans-serif; /* judul dan nama bagian */
+          --body: 'DM Sans', system-ui, -apple-system, 'Segoe UI', sans-serif; /* teks isi dan form */
+          --num: 'DM Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace; /* angka rupiah (bobot maks. 500) */
           background-color: var(--bg);
           background-image: radial-gradient(var(--dots) 1.2px, transparent 1.2px);
           background-size: 16px 16px;
           color: var(--ink);
           font-family: var(--body);
           font-weight: 500;
-          font-variant-numeric: lining-nums; /* Playfair & Raleway: angka bawaannya gaya lama (naik-turun) */
           font-size: 14px;
           min-height: 100vh;
           padding: clamp(14px, 4vw, 28px);
           box-sizing: border-box;
         }
         .app * { box-sizing: border-box; }
-        .app input, .app select, .app button { font-family: inherit; font-variant-numeric: inherit; }
+        .app input, .app select, .app button { font-family: inherit; }
         .wrap { max-width: 880px; margin: 0 auto; }
 
         .month-nav { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
         .month-nav button { background: var(--surface); border: 2px solid var(--ink); border-radius: 4px; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--ink); flex-shrink: 0; }
         .month-nav button:hover { background: var(--ink); color: var(--bg); }
-        .month-label { font-size: 13px; font-weight: 700; letter-spacing: 0.14em; color: var(--ink); }
+        .month-label { font-family: var(--display); font-size: 13px; font-weight: 700; letter-spacing: 0.14em; color: var(--ink); }
 
         .title-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 22px; flex-wrap: wrap; gap: 10px; }
-        h1 { font-family: var(--display); font-weight: 700; font-size: clamp(26px, 5vw, 36px); margin: 0; color: var(--ink); }
+        h1 { font-family: var(--display); font-weight: 800; font-size: clamp(26px, 5vw, 36px); margin: 0; color: var(--ink); }
         .icon-action-btn { background: var(--surface); border: 2px solid var(--ink); border-radius: 4px; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--ink); flex-shrink: 0; }
         .icon-action-btn:hover { background: var(--ink); color: var(--bg); }
 
         .hero { background: var(--primary); border: 2px solid var(--ink); border-radius: 6px; box-shadow: 5px 5px 0 var(--accent); padding: clamp(18px, 3vw, 26px); display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 20px; margin-bottom: 24px; }
         .hero-item .lbl { color: var(--track); font-weight: 600; font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 6px; }
-        .hero-item .val { font-size: clamp(18px, 3vw, 24px); font-weight: 700; color: var(--bg); word-break: break-word; }
+        .hero-item .val { font-size: clamp(16px, 2.6vw, 21px); font-weight: 700; color: var(--bg); word-break: break-word; }
         .hero-item .sub { font-size: 11.5px; margin-top: 4px; }
         .sub.pos { color: var(--hero-pos); }
         .sub.neg { color: var(--hero-neg); }
@@ -650,7 +652,7 @@ export default function ExpenseTracker() {
         .dot { width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid var(--ink); display: inline-block; margin-right: 7px; flex-shrink: 0; }
         .budget-card .amounts { font-size: 12px; color: var(--ink-soft); margin-bottom: 8px; word-break: break-word; }
         .track { background: var(--track); border: 1.5px solid var(--ink); border-radius: 3px; height: 12px; overflow: hidden; }
-        .fill { height: 100%; transition: width 0.3s ease; background-image: repeating-linear-gradient(135deg, rgba(242,238,238,0.28) 0 5px, transparent 5px 10px); }
+        .fill { height: 100%; transition: width 0.3s ease; background-image: repeating-linear-gradient(135deg, rgba(255,248,244,0.28) 0 5px, transparent 5px 10px); }
         .status-line { font-size: 11.5px; font-weight: 700; margin-top: 8px; }
 
         .history-controls { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
@@ -660,7 +662,7 @@ export default function ExpenseTracker() {
         .toggle-group button.active { background: var(--primary); color: var(--bg); }
 
         .group-block { margin-bottom: 18px; }
-        .group-title { font-size: 12.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft); margin-bottom: 6px; padding-bottom: 6px; border-bottom: 2px solid var(--ink); display: flex; align-items: center; gap: 8px; }
+        .group-title { font-family: var(--display); font-size: 12.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft); margin-bottom: 6px; padding-bottom: 6px; border-bottom: 2px solid var(--ink); display: flex; align-items: center; gap: 8px; }
         .tx-row { display: flex; justify-content: space-between; align-items: flex-start; padding: 10px 6px; border-bottom: 1px dashed var(--line); gap: 10px; }
         .tx-row:last-child { border-bottom: none; }
         .tx-row.editing { background: var(--bg); outline: 2px dashed var(--accent); outline-offset: -2px; }
@@ -681,14 +683,14 @@ export default function ExpenseTracker() {
         .row-btn.del:hover { color: var(--danger); }
         .empty { color: var(--ink-soft); font-size: 13px; padding: 20px 0; text-align: center; }
 
-        .overlay { position: fixed; inset: 0; background: rgba(67,35,35,0.55); display: flex; align-items: center; justify-content: center; z-index: 50; padding: 20px; }
+        .overlay { position: fixed; inset: 0; background: rgba(50,82,136,0.5); display: flex; align-items: center; justify-content: center; z-index: 50; padding: 20px; }
         .panel { background: var(--surface); border: 2px solid var(--ink); border-radius: 6px; box-shadow: 6px 6px 0 var(--accent); padding: 24px; width: 100%; max-width: 480px; max-height: 85vh; overflow-y: auto; }
         .panel-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
         .panel-head h2 { font-family: var(--display); font-weight: 700; font-size: 22px; margin: 0; }
         .panel-head button { background: none; border: none; cursor: pointer; color: var(--ink-soft); }
 
         .tabs { display: flex; border-bottom: 2px solid var(--ink); margin-bottom: 18px; gap: 4px; }
-        .tabs button { background: none; border: none; padding: 9px 4px; margin-right: 14px; font-size: 13px; font-weight: 700; color: var(--ink-soft); cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -2px; }
+        .tabs button { font-family: var(--display); background: none; border: none; padding: 9px 4px; margin-right: 14px; font-size: 13px; font-weight: 700; color: var(--ink-soft); cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -2px; }
         .tabs button.active { color: var(--ink); border-bottom-color: var(--accent); }
 
         .budget-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; gap: 10px; }
@@ -723,6 +725,10 @@ export default function ExpenseTracker() {
         .add-cat-row { display: flex; gap: 8px; margin-top: 6px; }
         .add-cat-row input { flex: 1; border: 2px solid var(--ink); border-radius: 4px; padding: 9px 10px; font-size: 13px; background: var(--bg); color: var(--ink); }
         .add-cat-row button { background: var(--primary); color: var(--bg); border: 2px solid var(--ink); border-radius: 4px; padding: 0 14px; cursor: pointer; display: flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 700; }
+
+        /* Angka rupiah: DM Mono. Diletakkan paling akhir agar menang atas font-weight: 700 di aturan lain. */
+        .num, .hero-item .val, .tx-amount, .item-sub, .app input[type="number"] { font-family: var(--num); font-weight: 500; }
+        .group-title .num { text-transform: none; }
 
         @media (max-width: 560px) {
           .item-row { grid-template-columns: 72px 1fr auto; }
@@ -764,7 +770,7 @@ export default function ExpenseTracker() {
             <div className="val">{rupiah(totalPengeluaran)}</div>
             {totalBudgetPengeluaran > 0 && (
               <div className={`sub ${sisaBudget >= 0 ? "pos" : "neg"}`}>
-                {sisaBudget >= 0 ? `Sisa anggaran ${rupiah(sisaBudget)}` : `Lebih ${rupiah(-sisaBudget)} dari anggaran`}
+                {sisaBudget >= 0 ? <>Sisa anggaran <Rp n={sisaBudget} /></> : <>Lebih <Rp n={-sisaBudget} /> dari anggaran</>}
               </div>
             )}
           </div>
@@ -791,8 +797,8 @@ export default function ExpenseTracker() {
               let fillColor = c.color;
               if (!isSavings && budget > 0) {
                 if (spent > budget) fillColor = "var(--danger)";
-                else if (spent >= budget * 0.8) fillColor = "var(--warn-fill)";
-                else fillColor = "var(--primary)";
+                else if (spent >= budget * 0.8) fillColor = "var(--accent)";
+                else fillColor = "var(--teal)";
               }
               return (
                 <div className="budget-card" key={c.key}>
@@ -800,7 +806,7 @@ export default function ExpenseTracker() {
                     <span className="name"><span className="dot" style={{ background: c.color }}></span>{c.key}</span>
                   </div>
                   <div className="amounts">
-                    {rupiah(spent)} {budget > 0 ? `/ ${rupiah(budget)}` : "(anggaran belum diatur)"}
+                    <Rp n={spent} /> {budget > 0 ? <>/ <Rp n={budget} /></> : "(anggaran belum diatur)"}
                   </div>
                   <div className="track"><div className="fill" style={{ width: `${pct}%`, background: fillColor }}></div></div>
                   {budget > 0 && (
@@ -808,8 +814,8 @@ export default function ExpenseTracker() {
                       {isSavings
                         ? `Terkumpul ${Math.round(pct)}% dari target`
                         : spent > budget
-                        ? `Lebih ${rupiah(spent - budget)} dari anggaran`
-                        : `Sisa ${rupiah(budget - spent)}${nearLimit ? " — hampir habis" : ""}`}
+                        ? <>Lebih <Rp n={spent - budget} /> dari anggaran</>
+                        : <>Sisa <Rp n={budget - spent} />{nearLimit ? " — hampir habis" : ""}</>}
                     </div>
                   )}
                 </div>
@@ -916,7 +922,7 @@ export default function ExpenseTracker() {
                   <button className="row-btn del" type="button" onClick={() => removeItem(it.id)} aria-label="Hapus barang"><X size={14} /></button>
                 </div>
               ))}
-              {hasItems && <div className="items-total">Total rincian: {rupiah(itemsTotal)}</div>}
+              {hasItems && <div className="items-total">Total rincian: <Rp n={itemsTotal} /></div>}
             </div>
             <div className="form-actions">
               <button className="submit-btn" type="submit">
@@ -967,7 +973,7 @@ export default function ExpenseTracker() {
               <div className="group-block" key={g.label}>
                 <div className="group-title">
                   <span className="dot" style={{ background: g.color }}></span>
-                  {g.label} · {rupiah(g.items.reduce((sum, t) => sum + t.amount, 0))}
+                  {g.label} · <Rp n={g.items.reduce((sum, t) => sum + t.amount, 0)} />
                 </div>
                 {g.items.map((t) => renderTx(t, true))}
               </div>

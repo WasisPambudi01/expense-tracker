@@ -1,6 +1,6 @@
-import { useState, useEffect, useMemo, useRef } from "react";
-import { ChevronLeft, ChevronRight, Trash2, Pencil, Settings2, X, Plus, LogOut, Mail, Check } from "lucide-react";
-import { THEMES, getTheme, isThemeId, themeStyle, catColor, normalizeCategories, nextCi, readStoredThemeId, storeThemeId } from "./themes.js";
+import { useState, useEffect, useLayoutEffect, useCallback, useMemo, useRef } from "react";
+import { ChevronLeft, ChevronRight, Trash2, Pencil, Settings2, X, Plus, LogOut, Mail, Check, Wallet, Tags, Palette } from "lucide-react";
+import { THEMES, getTheme, resolveThemeId, themeStyle, catColor, normalizeCategories, nextCi, readStoredThemeId, storeThemeId } from "./themes.js";
 import { supabase } from "./supabaseClient";
 
 const DEFAULT_EXPENSE = [
@@ -57,6 +57,71 @@ const migrateBudgets = (raw, txs) => {
   months.add(monthKey(new Date()));
   return Object.fromEntries([...months].map((m) => [m, { ...raw }]));
 };
+
+const SETTINGS_TABS = [
+  { id: "anggaran", label: "Anggaran", Icon: Wallet },
+  { id: "kelompok", label: "Kelompok", Icon: Tags },
+  { id: "tema", label: "Tema", Icon: Palette },
+];
+
+// Tab pengaturan. Bila semua label tidak muat dalam satu baris, hanya ikon yang ditampilkan
+// (nama tetap ada sebagai aria-label dan tooltip).
+function SettingsTabs({ active, onChange }) {
+  const wrapRef = useRef(null);
+  const rowRef = useRef(null);
+  const fullWidth = useRef(0); // lebar baris tab saat semua label tampil
+  const compactRef = useRef(false);
+  const [compact, setCompact] = useState(false);
+
+  const measure = useCallback(() => {
+    const wrap = wrapRef.current;
+    const row = rowRef.current;
+    if (!wrap || !row) return;
+    if (!compactRef.current) fullWidth.current = row.offsetWidth; // saat label tampil, lebar baris = lebar alaminya
+    const next = fullWidth.current > wrap.clientWidth;
+    if (next !== compactRef.current) {
+      compactRef.current = next;
+      setCompact(next);
+    }
+  }, []);
+
+  useLayoutEffect(() => {
+    measure(); // sebelum digambar, supaya label tidak sempat berkedip; juga mengukur ulang begitu label kembali tampil
+  }, [compact, measure]);
+
+  useEffect(() => {
+    if (typeof ResizeObserver === "undefined") {
+      window.addEventListener("resize", measure);
+      return () => window.removeEventListener("resize", measure);
+    }
+    const observer = new ResizeObserver(measure);
+    observer.observe(wrapRef.current);
+    document.fonts?.ready.then(measure); // font web selesai dimuat: lebar teks berubah
+    return () => observer.disconnect();
+  }, [measure]);
+
+  return (
+    <div className={`tabs${compact ? " compact" : ""}`} ref={wrapRef}>
+      <div className="tabs-row" role="tablist" ref={rowRef}>
+        {SETTINGS_TABS.map(({ id, label, Icon }) => (
+          <button
+            key={id}
+            type="button"
+            role="tab"
+            aria-selected={active === id}
+            aria-label={label}
+            title={compact ? label : undefined}
+            className={active === id ? "active" : ""}
+            onClick={() => onChange(id)}
+          >
+            <Icon size={16} aria-hidden="true" />
+            {!compact && label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 export default function ExpenseTracker() {
   const [session, setSession] = useState(null);
@@ -183,7 +248,8 @@ export default function ExpenseTracker() {
           setCategories(loadedCats);
           setTransactions(normalized);
           setBudgets(migrateBudgets(parsed.budgets, normalized));
-          if (isThemeId(parsed.theme)) setThemeId(parsed.theme); // tema dari akun menang atas tema di browser ini
+          const savedTheme = resolveThemeId(parsed.theme); // id tema lama dipetakan ke penggantinya
+          if (savedTheme) setThemeId(savedTheme); // tema dari akun menang atas tema di browser ini
           if (loadedCats.pengeluaran[0]) {
             setFCategory(loadedCats.pengeluaran[0].key);
             setFSub(loadedCats.pengeluaran[0].subs[0]);
@@ -678,9 +744,12 @@ export default function ExpenseTracker() {
         .panel-head h2 { font-family: var(--display); font-weight: 700; font-size: 22px; margin: 0; }
         .panel-head button { background: none; border: none; cursor: pointer; color: var(--ink-soft); }
 
-        .tabs { display: flex; border-bottom: 2px solid var(--ink); margin-bottom: 18px; gap: 4px;  flex-wrap: wrap; }
-        .tabs button { font-family: var(--display); background: none; border: none; padding: 9px 4px; margin-right: 14px; font-size: 13px; font-weight: 700; color: var(--ink-soft); cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -2px; }
+        .tabs { border-bottom: 2px solid var(--ink); margin-bottom: 18px; }
+        .tabs-row { display: flex; width: max-content; gap: 14px; } /* lebar = lebar alami semua tab: dipakai untuk memutuskan mode ikon saja */
+        .tabs button { display: flex; align-items: center; gap: 6px; font-family: var(--display); background: none; border: none; padding: 9px 4px; min-height: 44px; font-size: 13px; font-weight: 700; color: var(--ink-soft); cursor: pointer; white-space: nowrap; border-bottom: 3px solid transparent; margin-bottom: -2px; }
         .tabs button.active { color: var(--ink); border-bottom-color: var(--accent); }
+        .tabs.compact .tabs-row { gap: 4px; }
+        .tabs.compact button { min-width: 44px; justify-content: center; padding: 9px 10px; }
 
         .budget-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; gap: 10px; }
         .budget-row label { font-size: 13px; display: flex; align-items: center; }
@@ -990,11 +1059,7 @@ export default function ExpenseTracker() {
               <button onClick={() => setShowSettings(false)}><X size={18} /></button>
             </div>
 
-            <div className="tabs">
-              <button className={settingsTab === "anggaran" ? "active" : ""} onClick={() => setSettingsTab("anggaran")}>Anggaran</button>
-              <button className={settingsTab === "kelompok" ? "active" : ""} onClick={() => setSettingsTab("kelompok")}>Kelompok & Sub-kelompok</button>
-              <button className={settingsTab === "tema" ? "active" : ""} onClick={() => setSettingsTab("tema")}>Tema</button>
-            </div>
+            <SettingsTabs active={settingsTab} onChange={setSettingsTab} />
 
             {settingsTab === "anggaran" && (
               <>

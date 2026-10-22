@@ -5,6 +5,8 @@
 //   palette : 12 warna kategori. Kategori menyimpan INDEKS warna (`ci`), bukan kode hex, sehingga
 //             warna kategori ikut berganti saat tema diganti.
 //
+// Beauties dan Retro berbasis palet warna; Terang dan Gelap netral (abu grafit/putih) dengan warna status konvensional.
+//
 // Aturan peran warna (semua teks sudah diuji >= 4,5:1 di atas --bg dan --surface):
 //   --ink / --ink-soft ........ teks dan garis tepi
 //   --primary / --on-primary .. isian utama (tombol, kartu ringkasan) dan teks di atasnya
@@ -13,15 +15,15 @@
 //   --warn-text / --income .... pengganti --accent / --ok bila warna itu dipakai untuk teks
 
 export const PALETTE_SIZE = 12;
-export const DEFAULT_THEME_ID = "laguna";
+export const DEFAULT_THEME_ID = "beauties";
 export const THEME_STORAGE_KEY = "catatan-keuangan:tema";
 
 export const THEMES = [
   {
-    id: "laguna",
-    name: "Laguna",
+    id: "beauties",
+    name: "Beauties",
     desc: "Biru, teal, dan pink",
-    swatch: ["#24A19C", "#FAEEE7", "#325288", "#D96098"], // 4 warna palet asli
+    swatch: ["#24A19C", "#FAEEE7", "#325288", "#D96098"], // 4 warna yang ditampilkan di pemilih tema
     scheme: "light",
     themeColor: "#325288", // warna bilah browser di HP
     vars: {
@@ -48,79 +50,13 @@ export const THEMES = [
       "--overlay": "rgba(50,82,136,0.5)",
       "--stripe": "rgba(255,248,244,0.28)",
     },
-    palette: ["#325288", "#D96098", "#24A19C", "#1F3358", "#8FA8D6", "#F0A6C4", "#17706C", "#A8326F", "#7FD0CC", "#5A6FA3", "#6B3E5C", "#B9C7E2"],
+    palette: ["#325288", "#D96098", "#24A19C", "#1F3358", "#869EC9", "#CA8BA5", "#17706C", "#A8326F", "#67A8A5", "#5A6FA3", "#6B3E5C", "#949FB5"],
   },
   {
-    id: "anggur",
-    name: "Anggur Segar",
-    desc: "Plum dan hijau pucuk",
-    swatch: ["#450C3F", "#B9D175", "#D9EFBD", "#F5FBDA"], // 4 warna palet asli
-    scheme: "light",
-    themeColor: "#450C3F", // warna bilah browser di HP
-    vars: {
-      "--bg": "#D9EFBD",
-      "--surface": "#F5FBDA",
-      "--ink": "#450C3F",
-      "--ink-soft": "#7A5E6C",
-      "--line": "#DCDAC4",
-      "--track": "#CAD8B0",
-      "--dots": "#CFDFB4",
-      "--primary": "#450C3F",
-      "--on-primary": "#F5FBDA",
-      "--ok": "#4F7A14",
-      "--accent": "#7FA13A",
-      "--warn-fill": "#A64D97",
-      "--warn-text": "#8E2F82",
-      "--income": "#2F6B0F",
-      "--savings": "#2F6B0F",
-      "--danger": "#A31D15",
-      "--hero-label": "#D9EFBD",
-      "--hero-pos": "#F5FBDA",
-      "--hero-gold": "#B9D175",
-      "--hero-neg": "#FFB3D1",
-      "--overlay": "rgba(69,12,63,0.5)",
-      "--stripe": "rgba(245,251,218,0.28)",
-    },
-    palette: ["#450C3F", "#4F7A14", "#8F7E7E", "#A64D97", "#5C683A", "#74496F", "#6B4D51", "#220620", "#939063", "#A2869F", "#6C785E", "#7F6E5A"],
-  },
-  {
-    id: "hutan",
-    name: "Hutan Malam",
-    desc: "Tema gelap, hijau dan mint",
-    swatch: ["#091413", "#285A48", "#408A71", "#B0E4CC"], // 4 warna palet asli
-    scheme: "dark",
-    themeColor: "#091413", // warna bilah browser di HP
-    vars: {
-      "--bg": "#091413",
-      "--surface": "#0F2420",
-      "--ink": "#B0E4CC",
-      "--ink-soft": "#6D9182",
-      "--line": "#21433A",
-      "--track": "#1B3A31",
-      "--dots": "#11241F",
-      "--primary": "#285A48",
-      "--on-primary": "#E8FAF2",
-      "--ok": "#408A71",
-      "--accent": "#408A71",
-      "--warn-fill": "#D9A441",
-      "--warn-text": "#F0C36A",
-      "--income": "#6FE3A8",
-      "--savings": "#6FE3A8",
-      "--danger": "#FF8A80",
-      "--hero-label": "#B0E4CC",
-      "--hero-pos": "#E8FAF2",
-      "--hero-gold": "#F0C36A",
-      "--hero-neg": "#FFB3AB",
-      "--overlay": "rgba(0,0,0,0.6)",
-      "--stripe": "rgba(232,250,242,0.18)",
-    },
-    palette: ["#F0C36A", "#34725C", "#D8F2E6", "#FFB3AB", "#6FE3A8", "#848A89", "#78B79E", "#587266", "#A0C4B8", "#B0E4CC", "#D9A441", "#799F8F"],
-  },
-  {
-    id: "navy",
-    name: "Navy Klasik",
+    id: "retro",
+    name: "Retro",
     desc: "Navy, krem, dan cokelat",
-    swatch: ["#0A2947", "#F3E4C9", "#D3D4C0", "#8B5E3C"], // 4 warna palet asli
+    swatch: ["#0A2947", "#F3E4C9", "#D3D4C0", "#8B5E3C"], // 4 warna yang ditampilkan di pemilih tema
     scheme: "light",
     themeColor: "#0A2947", // warna bilah browser di HP
     vars: {
@@ -147,40 +83,73 @@ export const THEMES = [
       "--overlay": "rgba(10,41,71,0.55)",
       "--stripe": "rgba(243,228,201,0.28)",
     },
-    palette: ["#0A2947", "#8B5E3C", "#4F7396", "#B88458", "#6B6D52", "#C9A56A", "#2C4F74", "#5C3A22", "#8DA2B7", "#A59E7F", "#3A3C2B", "#D2A27E"],
+    palette: ["#0A2947", "#8B5E3C", "#4F7396", "#B88458", "#6B6D52", "#2A3644", "#2C4F74", "#5C3A22", "#8397AA", "#9B9577", "#3A3C2B", "#445868"],
   },
   {
-    id: "mint",
-    name: "Mint & Jingga",
-    desc: "Mint, kuning pucat, dan jingga",
-    swatch: ["#C1EBE9", "#FFF7C5", "#F4AE52", "#4F252E"], // 4 warna palet asli
+    id: "terang",
+    name: "Terang",
+    desc: "Putih bersih, netral",
+    swatch: ["#FFFFFF", "#F2F3F5", "#2B3036", "#1F9D6B"], // 4 warna yang ditampilkan di pemilih tema
     scheme: "light",
-    themeColor: "#4F252E", // warna bilah browser di HP
+    themeColor: "#2B3036", // warna bilah browser di HP
     vars: {
-      "--bg": "#C1EBE9",
-      "--surface": "#FFF7C5",
-      "--ink": "#4F252E",
-      "--ink-soft": "#705E64",
-      "--line": "#E6DAB0",
-      "--track": "#DDF3F1",
-      "--dots": "#B9DDDC",
-      "--primary": "#4F252E",
-      "--on-primary": "#FFF7C5",
-      "--ok": "#2E8C86",
-      "--accent": "#F4AE52",
-      "--warn-fill": "#E0861A",
-      "--warn-text": "#8A4B00",
-      "--income": "#1B6B66",
-      "--savings": "#1B6B66",
+      "--bg": "#F2F3F5",
+      "--surface": "#FFFFFF",
+      "--ink": "#1B1F24",
+      "--ink-soft": "#6B6D71",
+      "--line": "#DDE0E5",
+      "--track": "#E6E8EC",
+      "--dots": "#E4E6EA",
+      "--primary": "#2B3036",
+      "--on-primary": "#FFFFFF",
+      "--ok": "#1F9D6B",
+      "--accent": "#8E96A3",
+      "--warn-fill": "#D18C12",
+      "--warn-text": "#8A5A00",
+      "--income": "#17744A",
+      "--savings": "#2A62A8",
       "--danger": "#B3261E",
-      "--hero-label": "#C1EBE9",
-      "--hero-pos": "#FFF7C5",
-      "--hero-gold": "#F4AE52",
-      "--hero-neg": "#FFB3A8",
-      "--overlay": "rgba(79,37,46,0.5)",
-      "--stripe": "rgba(255,247,197,0.28)",
+      "--hero-label": "#CDD2D9",
+      "--hero-pos": "#FFFFFF",
+      "--hero-gold": "#F2C14E",
+      "--hero-neg": "#FFB3AB",
+      "--overlay": "rgba(27,31,36,0.5)",
+      "--stripe": "rgba(255,255,255,0.28)",
     },
-    palette: ["#281217", "#E0861A", "#2E8C86", "#7A5729", "#A79296", "#BE8146", "#807C62", "#7B5C62", "#607674", "#4F252E", "#A78E7A", "#85523A"],
+    palette: ["#3A6EB5", "#D9691F", "#2E9E6B", "#B5446E", "#7A5AC8", "#C99A1B", "#1F8FA3", "#C2453B", "#6B7B8C", "#8A6D3B", "#7DA32F", "#D0699E"],
+  },
+  {
+    id: "gelap",
+    name: "Gelap",
+    desc: "Grafit gelap, netral",
+    swatch: ["#121417", "#1B1E23", "#2F3640", "#5FD39B"], // 4 warna yang ditampilkan di pemilih tema
+    scheme: "dark",
+    themeColor: "#121417", // warna bilah browser di HP
+    vars: {
+      "--bg": "#121417",
+      "--surface": "#1B1E23",
+      "--ink": "#ECEEF1",
+      "--ink-soft": "#86888B",
+      "--line": "#2B3037",
+      "--track": "#2A2F36",
+      "--dots": "#1A1D22",
+      "--primary": "#2F3640",
+      "--on-primary": "#F3F4F6",
+      "--ok": "#3DBE8B",
+      "--accent": "#4A525E",
+      "--warn-fill": "#E0A93B",
+      "--warn-text": "#F0C060",
+      "--income": "#5FD39B",
+      "--savings": "#7AB2F0",
+      "--danger": "#FF8F85",
+      "--hero-label": "#C9CED6",
+      "--hero-pos": "#F3F4F6",
+      "--hero-gold": "#F0C060",
+      "--hero-neg": "#FFB3AB",
+      "--overlay": "rgba(0,0,0,0.6)",
+      "--stripe": "rgba(255,255,255,0.18)",
+    },
+    palette: ["#6FA3E8", "#F29A5A", "#5FD39B", "#E27BA6", "#A78BFA", "#E6C05A", "#4FC3D9", "#F08080", "#9AA7B5", "#C9A46A", "#9ED45A", "#F0A0C8"],
   },
 ];
 
@@ -195,8 +164,16 @@ const LEGACY_PALETTES = [
   ["#325288", "#D96098", "#24A19C", "#1F3358", "#8FA8D6", "#F0A6C4", "#17706C", "#A8326F", "#7FD0CC", "#5A6FA3", "#6B3E5C", "#B9C7E2"],
 ];
 
+// Tema yang sudah dihapus -> tema pengganti terdekat (tersimpan di akun/browser pengguna lama).
+const LEGACY_THEME_IDS = { laguna: "beauties", navy: "retro", hutan: "gelap", anggur: "terang", mint: "terang" };
+
 export const getTheme = (id) => THEMES.find((t) => t.id === id) || THEMES[0];
-export const isThemeId = (id) => THEMES.some((t) => t.id === id);
+
+// Id tema yang valid (id lama dipetakan ke penggantinya), atau null bila tidak dikenal.
+export function resolveThemeId(id) {
+  if (THEMES.some((t) => t.id === id)) return id;
+  return LEGACY_THEME_IDS[id] || null;
+}
 
 // Objek style untuk elemen paling luar. colorScheme membuat kontrol bawaan browser (kalender, scrollbar) ikut gelap/terang.
 export const themeStyle = (theme) => ({ ...theme.vars, colorScheme: theme.scheme });
@@ -231,8 +208,7 @@ export function nextCi(list) {
 
 export function readStoredThemeId() {
   try {
-    const id = localStorage.getItem(THEME_STORAGE_KEY);
-    return isThemeId(id) ? id : DEFAULT_THEME_ID;
+    return resolveThemeId(localStorage.getItem(THEME_STORAGE_KEY)) || DEFAULT_THEME_ID;
   } catch {
     return DEFAULT_THEME_ID;
   }
